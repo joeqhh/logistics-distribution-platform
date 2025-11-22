@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/consumer" },
+    // { "path": "./packages/merchant" }
+  ],
+  "compilerOptions": {
+    "noImplicitAny": false,
+  }
+}
