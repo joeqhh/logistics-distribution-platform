@@ -14,7 +14,6 @@ export interface Logistics {
 
 export interface CreateLogisticsData {
   orderId: string
-  status?: LogisticsStatus
   describe?: string
   location?: string
 }
@@ -64,7 +63,7 @@ export const createLogistics = async (logisticsData: CreateLogisticsData): Promi
   return await prisma.logistics.create({
     data: {
       orderId: logisticsData.orderId,
-      status: logisticsData.status || LogisticsStatus.PENDING,
+      status: LogisticsStatus.WAITDISPATCH,
       describe: logisticsData.describe,
       location: logisticsData.location
     },

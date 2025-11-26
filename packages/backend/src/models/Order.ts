@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma'
 import { OrderStatus } from '../generated/prisma/enums'
 import { randomUUID } from 'crypto';
 
+export {OrderStatus}
 
 export interface Order {
   id: string
@@ -14,16 +15,21 @@ export interface Order {
   updateTime: Date
   consumerId: number
   merchantId: number
+  productId: string
+  receiveAddressId: number
+  senderAddressId?: number
 }
 
 export interface CreateOrderData {
   id?: string
   number: string
   receiptTime?: Date
-  status?: OrderStatus
   company?: string
   consumerId: number
   merchantId: number
+  productId: string
+  receiveAddressId: number
+  senderAddressId?: number
 }
 
 export interface UpdateOrderData {
@@ -33,7 +39,7 @@ export interface UpdateOrderData {
 }
 
 // 根据ID查找订单
-export const findOrderById = async (id: string): Promise<Order | null> => {
+export const findOrderById = async (id: string): Promise<any | null> => {
   return await prisma.order.findUnique({
     where: { id, isDeleted: false },
     select: {
@@ -46,13 +52,41 @@ export const findOrderById = async (id: string): Promise<Order | null> => {
       createTime: true,
       updateTime: true,
       consumerId: true,
-      merchantId: true
+      merchantId: true,
+      productId: true,
+      receiveAddressId: true,
+      senderAddressId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true
+        }
+      },
+      receiveAddress: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          area: true,
+          detailedAddress: true
+        }
+      },
+      senderAddress: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            area: true,
+            detailedAddress: true
+          }
+        }
     }
   })
 }
 
 // 根据订单号查找订单
-export const findOrderByNumber = async (number: string): Promise<Order | null> => {
+export const findOrderByNumber = async (number: string): Promise<any | null> => {
   return await prisma.order.findFirst({
     where: { number, isDeleted: false },
     select: {
@@ -65,18 +99,40 @@ export const findOrderByNumber = async (number: string): Promise<Order | null> =
       createTime: true,
       updateTime: true,
       consumerId: true,
-      merchantId: true
+      merchantId: true,
+      productId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true
+        }
+      }
     }
   })
 }
 
-// 根据消费者ID查找订单列表
-export const findOrdersByConsumerId = async (consumerId: number, page: number = 1, limit: number = 10): Promise<{ orders: Order[], total: number }> => {
+// 根据消费者ID查找订单列表（支持筛选）
+export const findOrdersByConsumerId = async (
+  consumerId: number, 
+  page: number = 1, 
+  limit: number = 10,
+  orderNumber?: string,
+  status?: OrderStatus
+): Promise<{ orders: any[], total: number }> => {
   const skip = (page - 1) * limit
+  
+  // 构建查询条件
+  const whereCondition = {
+    consumerId,
+    isDeleted: false,
+    ...(orderNumber ? { number: { contains: orderNumber } } : {}),
+    ...(status ? { status } : {})
+  }
   
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
-      where: { consumerId, isDeleted: false },
+      where: whereCondition,
       select: {
         id: true,
         number: true,
@@ -87,25 +143,67 @@ export const findOrdersByConsumerId = async (consumerId: number, page: number = 
         createTime: true,
         updateTime: true,
         consumerId: true,
-        merchantId: true
+        merchantId: true,
+        productId: true,
+        receiveAddressId: true,
+        senderAddressId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            cover: true
+          }
+        },
+        receiveAddress: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            area: true,
+            detailedAddress: true
+          }
+        },
+        senderAddress: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              area: true,
+              detailedAddress: true
+            }
+          }
       },
       skip,
       take: limit,
       orderBy: { createTime: 'desc' }
     }),
-    prisma.order.count({ where: { consumerId, isDeleted: false } })
+    prisma.order.count({ where: whereCondition })
   ])
   
   return { orders, total }
 }
 
-// 根据商家ID查找订单列表
-export const findOrdersByMerchantId = async (merchantId: number, page: number = 1, limit: number = 10): Promise<{ orders: Order[], total: number }> => {
+// 根据商家ID查找订单列表（支持筛选）
+export const findOrdersByMerchantId = async (
+  merchantId: number, 
+  page: number = 1, 
+  limit: number = 10,
+  orderNumber?: string,
+  status?: OrderStatus
+): Promise<{ orders: any[], total: number }> => {
   const skip = (page - 1) * limit
+  
+  // 构建查询条件
+  const whereCondition = {
+    merchantId,
+    isDeleted: false,
+    ...(orderNumber ? { number: { contains: orderNumber } } : {}),
+    ...(status ? { status } : {})
+  }
   
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
-      where: { merchantId, isDeleted: false },
+      where: whereCondition,
       select: {
         id: true,
         number: true,
@@ -116,29 +214,60 @@ export const findOrdersByMerchantId = async (merchantId: number, page: number = 
         createTime: true,
         updateTime: true,
         consumerId: true,
-        merchantId: true
+        merchantId: true,
+        productId: true,
+        receiveAddressId: true,
+        senderAddressId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            cover: true
+          }
+        },
+        receiveAddress: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            area: true,
+            detailedAddress: true
+          }
+        },
+        senderAddress: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            area: true,
+            detailedAddress: true
+          }
+        }
       },
       skip,
       take: limit,
       orderBy: { createTime: 'desc' }
     }),
-    prisma.order.count({ where: { merchantId, isDeleted: false } })
+    prisma.order.count({ where: whereCondition })
   ])
   
   return { orders, total }
 }
 
 // 创建新订单
-export const createOrder = async (orderData: CreateOrderData): Promise<Order> => {
+export const createOrder = async (orderData: CreateOrderData): Promise<any> => {
   return await prisma.order.create({
     data: {
-      id: randomUUID(),
+      id: orderData.id || randomUUID(),
       number: orderData.number,
       receiptTime: orderData.receiptTime,
-      status: orderData.status || OrderStatus.PENDING,
+      status: OrderStatus.WAITDISPATCH,
+      receiveAddressId: orderData.receiveAddressId,
+      ...(orderData.senderAddressId && { senderAddressId: orderData.senderAddressId }),
       company: orderData.company,
       consumerId: orderData.consumerId,
-      merchantId: orderData.merchantId
+      merchantId: orderData.merchantId,
+      productId: orderData.productId
     },
     select: {
       id: true,
@@ -150,13 +279,21 @@ export const createOrder = async (orderData: CreateOrderData): Promise<Order> =>
       createTime: true,
       updateTime: true,
       consumerId: true,
-      merchantId: true
+      merchantId: true,
+      productId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true
+        }
+      }
     }
   })
 }
 
 // 更新订单信息
-export const updateOrder = async (id: string, orderData: UpdateOrderData): Promise<Order | null> => {
+export const updateOrder = async (id: string, orderData: UpdateOrderData): Promise<any | null> => {
   return await prisma.order.update({
     where: { id, isDeleted: false },
     data: orderData,
@@ -170,13 +307,21 @@ export const updateOrder = async (id: string, orderData: UpdateOrderData): Promi
       createTime: true,
       updateTime: true,
       consumerId: true,
-      merchantId: true
+      merchantId: true,
+      productId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true
+        }
+      }
     }
   })
 }
 
 // 更新订单状态
-export const updateOrderStatus = async (id: string, status: OrderStatus): Promise<Order | null> => {
+export const updateOrderStatus = async (id: string, status: OrderStatus): Promise<any | null> => {
   return await prisma.order.update({
     where: { id, isDeleted: false },
     data: { status },
@@ -190,7 +335,15 @@ export const updateOrderStatus = async (id: string, status: OrderStatus): Promis
       createTime: true,
       updateTime: true,
       consumerId: true,
-      merchantId: true
+      merchantId: true,
+      productId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true
+        }
+      }
     }
   })
 }
@@ -209,7 +362,7 @@ export const deleteOrder = async (id: string): Promise<boolean> => {
 }
 
 // 获取所有订单（分页）
-export const getAllOrders = async (page: number = 1, limit: number = 10): Promise<{ orders: Order[], total: number }> => {
+export const getAllOrders = async (page: number = 1, limit: number = 10): Promise<{ orders: any[], total: number }> => {
   const skip = (page - 1) * limit
   
   const [orders, total] = await Promise.all([
@@ -225,7 +378,15 @@ export const getAllOrders = async (page: number = 1, limit: number = 10): Promis
         createTime: true,
         updateTime: true,
         consumerId: true,
-        merchantId: true
+        merchantId: true,
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            cover: true
+          }
+        }
       },
       skip,
       take: limit,

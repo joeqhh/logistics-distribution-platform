@@ -3,11 +3,12 @@ import { randomUUID } from 'crypto'
 import { Decimal } from '@prisma/client/runtime/client'
 import { ProductStatus } from '../generated/prisma/enums'
 
+export { ProductStatus }
+
 export interface Product {
   id: string
   name: string
   price: Decimal
-  introduction?: string | null
   merchantId: number
   sales: number
   images?: any
@@ -22,7 +23,6 @@ export interface CreateProductData {
   id?: string
   name: string
   price: number
-  introduction?: string
   merchantId: number
   images?: any
   cover: string
@@ -31,9 +31,9 @@ export interface CreateProductData {
 export interface UpdateProductData {
   name?: string
   price?: number
-  introduction?: string
   images?: any
   cover?: string
+  status?: ProductStatus
 }
 
 // 根据ID查找商品
@@ -44,7 +44,6 @@ export const findProductById = async (id: string): Promise<Product | null> => {
       id: true,
       name: true,
       price: true,
-      introduction: true,
       merchantId: true,
       sales: true,
       images: true,
@@ -61,18 +60,23 @@ export const findProductById = async (id: string): Promise<Product | null> => {
 export const findProductsByMerchantId = async (
   merchantId: number,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  status?: ProductStatus
 ): Promise<{ products: Product[]; total: number }> => {
   const skip = (page - 1) * limit
+  const whereCondition = {
+    merchantId,
+    isDeleted: false,
+    ...(status ? { status } : {})
+  }
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where: { merchantId, isDeleted: false },
+      where: whereCondition,
       select: {
         id: true,
         name: true,
         price: true,
-        introduction: true,
         merchantId: true,
         sales: true,
         images: true,
@@ -86,10 +90,83 @@ export const findProductsByMerchantId = async (
       take: limit,
       orderBy: { id: 'desc' }
     }),
-    prisma.product.count({ where: { merchantId, isDeleted: false } })
+    prisma.product.count({ where: whereCondition })
   ])
-
   return { products, total }
+}
+
+// 批量更新商品状态
+export const batchUpdateProductStatus = async (
+  ids: string[],
+  merchantId: number,
+  status: ProductStatus
+): Promise<boolean> => {
+  try {
+    // 验证所有商品都属于该商家且未被删除
+    const existingProducts = await prisma.product.findMany({
+      where: {
+        id: { in: ids },
+        merchantId,
+        isDeleted: false
+      },
+      select: { id: true }
+    })
+
+    if (existingProducts.length !== ids.length) {
+      return false
+    }
+
+    // 批量更新状态
+    await prisma.product.updateMany({
+      where: {
+        id: { in: ids },
+        merchantId,
+        isDeleted: false
+      },
+      data: { status }
+    })
+
+    return true
+  } catch (error) {
+    console.error('批量更新商品状态失败:', error)
+    return false
+  }
+}
+
+// 批量删除商品（软删除）
+export const batchDeleteProducts = async (
+  ids: string[],
+  merchantId: number
+): Promise<boolean> => {
+  try {
+    // 验证所有商品都属于该商家
+    const existingProducts = await prisma.product.findMany({
+      where: {
+        id: { in: ids },
+        merchantId,
+        isDeleted: false
+      },
+      select: { id: true }
+    })
+
+    if (existingProducts.length !== ids.length) {
+      return false
+    }
+
+    // 批量软删除
+    await prisma.product.updateMany({
+      where: {
+        id: { in: ids },
+        merchantId
+      },
+      data: { isDeleted: true }
+    })
+
+    return true
+  } catch (error) {
+    console.error('批量删除商品失败:', error)
+    return false
+  }
 }
 
 // 创建新商品
@@ -101,7 +178,6 @@ export const createProduct = async (
       id: randomUUID(),
       name: productData.name,
       price: productData.price,
-      introduction: productData.introduction,
       merchantId: productData.merchantId,
       sales: 0,
       images: productData.images,
@@ -111,7 +187,6 @@ export const createProduct = async (
       id: true,
       name: true,
       price: true,
-      introduction: true,
       merchantId: true,
       sales: true,
       images: true,
@@ -136,7 +211,6 @@ export const updateProduct = async (
       id: true,
       name: true,
       price: true,
-      introduction: true,
       merchantId: true,
       sales: true,
       images: true,
@@ -166,7 +240,6 @@ export const updateProductSales = async (
       name: true,
       price: true,
       status: true,
-      introduction: true,
       merchantId: true,
       sales: true,
       images: true,
@@ -200,12 +273,14 @@ export const getAllProducts = async (
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where: { isDeleted: false },
+      where: { 
+        isDeleted: false,
+        status: ProductStatus.SALE 
+      },
       select: {
         id: true,
         name: true,
         price: true,
-        introduction: true,
         merchantId: true,
         sales: true,
         images: true,
@@ -219,7 +294,12 @@ export const getAllProducts = async (
       take: limit,
       orderBy: { createTime: 'desc' }
     }),
-    prisma.product.count({ where: { isDeleted: false } })
+    prisma.product.count({ 
+      where: { 
+        isDeleted: false,
+        status: ProductStatus.SALE 
+      } 
+    })
   ])
 
   return { products, total }
@@ -237,16 +317,15 @@ export const searchProducts = async (
     prisma.product.findMany({
       where: {
         isDeleted: false,
+        status: ProductStatus.SALE,
         OR: [
           { name: { contains: keyword } },
-          { introduction: { contains: keyword } }
         ]
       },
       select: {
         id: true,
         name: true,
         price: true,
-        introduction: true,
         merchantId: true,
         sales: true,
         images: true,
@@ -263,9 +342,9 @@ export const searchProducts = async (
     prisma.product.count({
       where: {
         isDeleted: false,
+        status: ProductStatus.SALE,
         OR: [
           { name: { contains: keyword } },
-          { introduction: { contains: keyword } }
         ]
       }
     })

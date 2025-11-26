@@ -1,8 +1,8 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/consumer" },
-    // { "path": "./packages/merchant" }
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
     "noImplicitAny": false,

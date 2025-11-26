@@ -3,7 +3,7 @@
 export * from './Consumer'
 
 // 消费者地址模型
-export * from './ConsumerAddress'
+export * from './Address'
 
 // 物流模型
 export * from './Logistics'

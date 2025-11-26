@@ -3,6 +3,9 @@ import dotenv from 'dotenv'
 import multer from 'multer'
 import authRoutes from './routes/auth'
 import productRoutes from './routes/product'
+import addressRoutes from './routes/address'
+import merchantRoutes from './routes/merchant'
+import orderRoutes from './routes/order'
 import { errorHandler } from './middleware/errorHandler'
 
 // 加载环境变量
@@ -25,6 +28,9 @@ app.use(upload.any())
 // 路由
 app.use('/api/auth', authRoutes)
 app.use('/api', productRoutes)
+app.use('/api', addressRoutes)
+app.use('/api', merchantRoutes)
+app.use('/api/order', orderRoutes)
 
 // 健康检查路由
 app.get('/health', (req, res) => {

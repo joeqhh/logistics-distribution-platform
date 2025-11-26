@@ -5,7 +5,7 @@ export interface Merchant {
   name: string | null
   address?: string | null
   avatar?: string | null
-  deliveryArea?: string | null
+  deliveryArea?: any
   account: string
   password: string
   isDeleted: boolean
@@ -19,7 +19,7 @@ export interface CreateMerchantData {
   name?: string
   address?: string
   avatar?: string
-  deliveryArea?: string
+  deliveryArea?: any
   account: string
   password: string
 }
@@ -28,7 +28,7 @@ export interface UpdateMerchantData {
   name?: string
   address?: string
   avatar?: string
-  deliveryArea?: string
+  deliveryArea?: any
   password?: string
 }
 
@@ -153,29 +153,4 @@ export const getAllMerchants = async (page: number = 1, limit: number = 10): Pro
   ])
   
   return { merchants, total }
-}
-
-// 根据区域查找商家
-export const findMerchantsByArea = async (area: string): Promise<Merchant[]> => {
-  return await prisma.merchant.findMany({
-    where: {
-      isDeleted: false,
-      deliveryArea: {
-        contains: area
-      }
-    },
-    select: {
-      id: true,
-      name: true,
-      address: true,
-      avatar: true,
-      deliveryArea: true,
-      account: true,
-      password: true,
-      isDeleted: true,
-      createTime: true,
-      updateTime: true
-    },
-    orderBy: { id: 'desc' }
-  })
 }

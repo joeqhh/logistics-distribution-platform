@@ -5,9 +5,18 @@ import {
   getMerchantProducts,
   getProductDetail,
   updateProductHandler,
-  deleteProductHandler
+  deleteProductHandler,
+  putProductOnSale,
+  putProductOffSale,
+  batchPutProductsOnSale,
+  batchPutProductsOffSale,
+  batchDeleteProductsHandler,
+  getPublicProducts,
+  publicSearchProducts,
+  getPublicProductDetail,
+  placeOrderHandler
 } from '../controllers/productController'
-import { merchantProtect } from '../middleware/authCheck'
+import { merchantProtect, consumerProtect } from '../middleware/authCheck'
 
 const router : Router = express.Router()
 
@@ -31,6 +40,34 @@ router.put('/products/:id', merchantProtect, upload.fields([
 ]), updateProductHandler)
 
 // 删除商品
-router.delete('/products/:id', merchantProtect, deleteProductHandler)
+router.delete('/products/single/:id', merchantProtect, deleteProductHandler)
+
+// 商品上架
+router.put('/products/single/:id/on-sale', merchantProtect, putProductOnSale)
+
+// 商品下架
+router.put('/products/single/:id/off-sale', merchantProtect, putProductOffSale)
+
+// 批量上架商品
+router.put('/products/batch/on-sale', merchantProtect, batchPutProductsOnSale)
+
+// 批量下架商品
+router.put('/products/batch/off-sale', merchantProtect, batchPutProductsOffSale)
+
+// 批量删除商品
+router.delete('/products/batch', merchantProtect, batchDeleteProductsHandler)
+
+// 公开接口 - 不需要登录保护
+// 获取商品列表（只返回is_deleted == 0和status == SALE的商品）
+router.get('/public/products', getPublicProducts)
+
+// 搜索商品（只返回is_deleted == 0和status == SALE的商品）
+router.get('/public/products/search', publicSearchProducts)
+
+// 获取商品详情（只返回is_deleted == 0和status == SALE的商品）
+router.get('/public/products/:id', getPublicProductDetail)
+
+// 下单
+router.post('/product/order', consumerProtect, placeOrderHandler)
 
 export default router

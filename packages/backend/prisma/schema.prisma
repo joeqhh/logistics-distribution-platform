@@ -19,22 +19,29 @@ enum ProductStatus {
   UNDERCARRIAGE
 }
 
+enum AddressType {
+  SENDER
+  RECEIVER
+}
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
+  WAITDISPATCH
+  DISPATCHED
+  PICKUPED
+  TRANSPORTING
   DELIVERING
-  DELIVERED
-  CANCELLED
-  REFUNDED
+  WAITRECEIVE
+  RECEIVED
 }
 
 enum LogisticsStatus {
-  PENDING
-  IN_TRANSIT
+  WAITDISPATCH
+  DISPATCHED
+  PICKUPED
+  TRANSPORTING
   DELIVERING
-  DELIVERED
-  CANCELLED
+  WAITRECEIVE
+  RECEIVED
 }
 
 model Consumer {
@@ -49,28 +56,26 @@ model Consumer {
   updateTime DateTime @updatedAt @map("update_time")
   
   // 关系
-  addresses ConsumerAddress[]
   orders    Order[]
 
   @@map("consumer")
 }
 
-model ConsumerAddress {
+model Address {
   id              Int      @id @default(autoincrement())
-  receiver        String   @db.VarChar(50)
+  name            String   @db.VarChar(50)
   phone           String?  @db.VarChar(20)
   area            String?  @db.VarChar(255)
   detailedAddress String?  @db.VarChar(500) @map("detailed_address")
-  location        String?  @db.VarChar(255)
   isDeleted       Boolean  @default(false) @map("is_deleted")
   createTime      DateTime @default(now()) @map("create_time")
   updateTime      DateTime @updatedAt @map("update_time")
-  consumerId      Int     @map("consumer_id")
+  userId          Int      @map("user_id")
+  type            AddressType  @default(RECEIVER) @map("type")
   
-  // 关系
-  consumer        Consumer? @relation(fields: [consumerId], references: [id])
-
-  @@map("consumer_address")
+  receivedOrders Order[] @relation(name: "OrderReceiveAddress")
+  sentOrders     Order[] @relation(name: "OrderSenderAddress")
+  @@map("address")
 }
 
 model Merchant {
@@ -78,7 +83,7 @@ model Merchant {
   name         String?  @db.VarChar(100)
   address      String?  @db.VarChar(500)
   avatar       String?  @db.VarChar(255)
-  deliveryArea String?  @db.VarChar(500) @map("delivery_area")
+  deliveryArea Json?    @map("delivery_area")
   account      String   @unique @db.VarChar(50)
   password     String   @db.VarChar(255)
   isDeleted    Boolean  @default(false) @map("is_deleted")
@@ -96,7 +101,6 @@ model Product {
   id           String    @id
   name         String    @db.VarChar(100)
   price        Decimal   @db.Decimal(10, 2)
-  introduction String?   @db.Text
   merchantId   Int       @map("merchant_id")
   sales        Int       @default(0)
   images       Json?
@@ -106,9 +110,8 @@ model Product {
   updateTime   DateTime  @updatedAt @map("update_time")
   status       ProductStatus @default(UNDERCARRIAGE)
 
-  // 关系
   merchant     Merchant  @relation(fields: [merchantId], references: [id])
-
+  orders       Order[]
   @@map("product")
 }
 
@@ -116,18 +119,24 @@ model Order {
   id          String      @id
   number      String      @unique @db.VarChar(50)
   receiptTime DateTime?   @map("receipt_time")
-  status      OrderStatus @default(PENDING)
+  status      OrderStatus @default(WAITDISPATCH)
   company     String?     @db.VarChar(100)
   isDeleted   Boolean     @default(false) @map("is_deleted")
   createTime  DateTime    @default(now()) @map("create_time")
   updateTime  DateTime    @updatedAt @map("update_time")
   consumerId  Int         @map("consumer_id")
   merchantId  Int         @map("merchant_id")
+  productId   String      @map("product_id")
+  receiveAddressId   Int      @map("receive_address_id")
+  senderAddressId   Int?      @map("sender_address_id")
   
   // 关系
   consumer    Consumer    @relation(fields: [consumerId], references: [id])
   merchant    Merchant    @relation(fields: [merchantId], references: [id])
   logistics   Logistics?
+  product     Product     @relation(fields: [productId], references: [id])
+  receiveAddress Address  @relation(name: "OrderReceiveAddress", fields: [receiveAddressId], references: [id])
+  senderAddress Address?  @relation(name: "OrderSenderAddress", fields: [senderAddressId], references: [id])
 
   @@map("order")
 }
@@ -135,7 +144,7 @@ model Order {
 model Logistics {
   id         Int            @id @default(autoincrement())
   orderId    String         @unique @map("order_id")
-  status     LogisticsStatus @default(PENDING)
+  status     LogisticsStatus @default(WAITDISPATCH)
   describe   String?        @db.Text
   location   String?        @db.VarChar(255)
   isDeleted  Boolean        @default(false) @map("is_deleted")

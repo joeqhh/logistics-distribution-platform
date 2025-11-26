@@ -1,0 +1,50 @@
+{
+  "name": "@logistics-distribution-platform/merchant",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.22.0",
+  "dependencies": {
+    "@arco-design/web-react": "^2.66.8",
+    "@loadable/component": "^5.13.2",
+    "@logistics-distribution-platform/shared-ui": "workspace:*",
+    "@logistics-distribution-platform/backend": "workspace:*",
+    "axios": "^1.13.2",
+    "classnames": "^2.3.1",
+    "lodash": "^4.17.21",
+    "nprogress": "^0.2.0",
+    "query-string": "^6.13.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "zustand": "^5.0.8",
+    "@amap/amap-jsapi-loader": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/loadable__component": "^5.13.2",
+    "@types/node": "^20.10.0",
+    "@types/nprogress": "^0.2.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/react-router-dom": "^5.2.0",
+    "@vitejs/plugin-react-swc": "^4.0.0",
+    "less": "^4.2.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  },
+  "overrides": {
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0"
+  }
+}
