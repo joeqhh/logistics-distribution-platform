@@ -14,6 +14,7 @@ export interface Address {
   createTime: Date
   updateTime: Date
   type: AddressType
+  location?: string | null
 }
 
 export interface CreateAddressData {
@@ -23,6 +24,7 @@ export interface CreateAddressData {
   detailedAddress: string
   userId: number
   type: AddressType
+  location: string
 }
 
 export interface UpdateAddressData {
@@ -30,6 +32,7 @@ export interface UpdateAddressData {
   phone?: string
   area?: string
   detailedAddress?: string
+  location?: string
 }
 
 // 根据ID查找地址
@@ -46,7 +49,8 @@ export const findAddressById = async (id: number): Promise<Address | null> => {
       createTime: true,
       updateTime: true,
       userId: true,
-      type : true
+      type : true,
+      location: true
     }
   })
 }
@@ -100,7 +104,8 @@ export const createAddress = async (addressData: CreateAddressData): Promise<Add
       area: addressData.area,
       detailedAddress: addressData.detailedAddress,
       userId: addressData.userId,
-      type: addressData.type
+      type: addressData.type,
+      location: addressData.location
     },
     select: {
       id: true,
@@ -112,7 +117,8 @@ export const createAddress = async (addressData: CreateAddressData): Promise<Add
       createTime: true,
       updateTime: true,
       userId: true,
-      type: true
+      type: true,
+      location: true
     }
   })
 }
@@ -132,7 +138,8 @@ export const updateAddress = async (id: number, addressData: UpdateAddressData):
       createTime: true,
       updateTime: true,
       userId: true,
-      type: true
+      type: true,
+      location: true
     }
   })
 }

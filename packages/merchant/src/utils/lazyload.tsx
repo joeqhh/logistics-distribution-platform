@@ -23,22 +23,28 @@ function LoadingComponent(props: {
     console.error(props.error);
     return null;
   }
-  return (
+  return <>  
     <div className={styles.spin}>
       <Spin />
     </div>
-  );
+  </>
+  
 }
 
-export default function LazyLoad(loader: any) {
-    load(loader, {
-    fallback: LoadingComponent({
-      pastDelay: true,
-      error: false,
-      timedOut: false,
-    }),
+export default function withLoader(loader: any) {
+  return load(loader, {
+    fallback: <LoadingComponent pastDelay={false} error={false} timedOut={false} />,
   });
 }
+
+// export default (loader: any) =>
+//   load(loader, {
+//     fallback: LoadingComponent({
+//       pastDelay: true,
+//       error: false,
+//       timedOut: false,
+//     }),
+//   });
 // import React, { Suspense } from "react";
 // import { Spin } from '@arco-design/web-react';
 // /**

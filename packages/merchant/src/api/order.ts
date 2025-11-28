@@ -9,12 +9,7 @@ import type { Order,  OrderQueryParams, OrderListResponse, UpdateOrderStatusPara
  */
 export const getMerchantOrders = async (params?: OrderQueryParams): Promise<ApiResponse<OrderListResponse>> => {
   return axiosInstance.get('/order/merchant', {
-    params: {
-      page: params?.page || 1,
-      limit: params?.limit || 10,
-      orderNumber: params?.orderNumber,
-      status: params?.status
-    }
+    params,
   })
 }
 

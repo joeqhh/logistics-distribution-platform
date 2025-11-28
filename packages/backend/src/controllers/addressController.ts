@@ -1,13 +1,31 @@
 import { Request, Response } from 'express'
 import { AuthRequest } from '../middleware/authCheck'
-import { Address, CreateAddressData, UpdateAddressData, AddressType, findAddressById, findAddressesByConsumerId, findAddressesByMerchantId, createAddress, updateAddress, deleteAddress } from '../models/Address'
+import {
+  Address,
+  CreateAddressData,
+  UpdateAddressData,
+  AddressType,
+  findAddressById,
+  findAddressesByConsumerId,
+  findAddressesByMerchantId,
+  createAddress,
+  updateAddress,
+  deleteAddress
+} from '../models/Address'
+import dotenv from 'dotenv'
+import { badRequestResponse } from '..//utils/response'
+
+dotenv.config()
 
 // 消费者地址操作控制器
 
 /**
  * 创建消费者地址
  */
-export const consumerCreateAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerCreateAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<any> => {
   try {
     const { name, phone, area, detailedAddress } = req.body
     const consumerId = req.user?.id
@@ -20,6 +38,18 @@ export const consumerCreateAddress = async (req: AuthRequest, res: Response): Pr
       return
     }
 
+    let location = ''
+    try {
+      const res = await fetch(
+        process.env.MAP_BASE_URL +
+          `/geocode/geo?key=${process.env.MAP_API_KEY}&address=${area.replaceAll('/', '') + detailedAddress}`
+      )
+      // const location = res.geocodes.location
+      const data: any = await res.json()
+      location = data.geocodes[0].location
+    } catch (error) {
+      return badRequestResponse(res, error as string)
+    }
     // 创建地址数据
     const addressData: CreateAddressData = {
       name,
@@ -27,13 +57,12 @@ export const consumerCreateAddress = async (req: AuthRequest, res: Response): Pr
       area,
       detailedAddress,
       userId: consumerId,
-      type: AddressType.RECEIVER
+      type: AddressType.RECEIVER,
+      location
     }
-    
+
     // 调用地址模型的创建方法
     const newAddress = await createAddress(addressData)
-
-    // 地址模型中没有isDefault字段，通过type字段区分是收件人还是发件人地址
 
     res.status(201).json({
       code: 200,
@@ -52,7 +81,10 @@ export const consumerCreateAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 获取消费者地址列表（分页）
  */
-export const consumerGetAddresses = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerGetAddresses = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const consumerId = req.user?.id
     // 获取分页参数，默认为第1页，每页10条
@@ -69,7 +101,7 @@ export const consumerGetAddresses = async (req: AuthRequest, res: Response): Pro
 
     // 调用地址模型的查询方法
     const allAddresses = await findAddressesByConsumerId(consumerId)
-    
+
     // 计算分页数据
     const start = (page - 1) * pageSize
     const end = start + pageSize
@@ -100,7 +132,10 @@ export const consumerGetAddresses = async (req: AuthRequest, res: Response): Pro
 /**
  * 根据ID获取消费者地址
  */
-export const consumerGetAddressById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerGetAddressById = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const consumerId = req.user?.id
@@ -115,8 +150,12 @@ export const consumerGetAddressById = async (req: AuthRequest, res: Response): P
 
     // 调用地址模型的查询方法
     const address = await findAddressById(parseInt(id))
-    
-    if (!address || address.userId !== consumerId || address.type !== AddressType.RECEIVER) {
+
+    if (
+      !address ||
+      address.userId !== consumerId ||
+      address.type !== AddressType.RECEIVER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
@@ -141,7 +180,10 @@ export const consumerGetAddressById = async (req: AuthRequest, res: Response): P
 /**
  * 更新消费者地址
  */
-export const consumerUpdateAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerUpdateAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<any> => {
   try {
     const { id } = req.params
     const { name, phone, area, detailedAddress } = req.body
@@ -154,15 +196,31 @@ export const consumerUpdateAddress = async (req: AuthRequest, res: Response): Pr
       })
       return
     }
-    
+
     // 检查地址是否存在且属于当前用户
     const existingAddress = await findAddressById(parseInt(id))
-    if (!existingAddress || existingAddress.userId !== consumerId || existingAddress.type !== AddressType.RECEIVER) {
+    if (
+      !existingAddress ||
+      existingAddress.userId !== consumerId ||
+      existingAddress.type !== AddressType.RECEIVER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
       })
       return
+    }
+    let location = ''
+    try {
+      const res = await fetch(
+        process.env.MAP_BASE_URL +
+          `/geocode/geo?key=${process.env.MAP_API_KEY}&address=${area.replaceAll('/', '') + detailedAddress}`
+      )
+      // const location = res.geocodes.location
+      const data: any = await res.json()
+      location = data.geocodes[0].location
+    } catch (error) {
+      return badRequestResponse(res, error as string)
     }
 
     // 准备更新数据
@@ -170,9 +228,10 @@ export const consumerUpdateAddress = async (req: AuthRequest, res: Response): Pr
       name,
       phone,
       area,
-      detailedAddress
+      detailedAddress,
+      location
     }
-    
+
     // 调用地址模型的更新方法
     const updatedAddress = await updateAddress(parseInt(id), updateData)
 
@@ -195,7 +254,10 @@ export const consumerUpdateAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 删除消费者地址
  */
-export const consumerDeleteAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerDeleteAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const consumerId = req.user?.id
@@ -210,17 +272,21 @@ export const consumerDeleteAddress = async (req: AuthRequest, res: Response): Pr
 
     // 检查地址是否存在且属于当前用户
     const existingAddress = await findAddressById(parseInt(id))
-    if (!existingAddress || existingAddress.userId !== consumerId || existingAddress.type !== AddressType.RECEIVER) {
+    if (
+      !existingAddress ||
+      existingAddress.userId !== consumerId ||
+      existingAddress.type !== AddressType.RECEIVER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
       })
       return
     }
-    
+
     // 调用地址模型的删除方法
     const deleted = await deleteAddress(parseInt(id))
-    
+
     if (!deleted) {
       res.status(400).json({
         code: 400,
@@ -245,7 +311,10 @@ export const consumerDeleteAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 设置消费者默认地址
  */
-export const consumerSetDefaultAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const consumerSetDefaultAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const consumerId = req.user?.id
@@ -277,7 +346,10 @@ export const consumerSetDefaultAddress = async (req: AuthRequest, res: Response)
 /**
  * 创建商家地址
  */
-export const merchantCreateAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantCreateAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<any> => {
   try {
     const { name, phone, area, detailedAddress } = req.body
     const merchantId = req.user?.id
@@ -290,6 +362,19 @@ export const merchantCreateAddress = async (req: AuthRequest, res: Response): Pr
       return
     }
 
+    let location = ''
+    try {
+      const res = await fetch(
+        process.env.MAP_BASE_URL +
+          `/geocode/geo?key=${process.env.MAP_API_KEY}&address=${area.replaceAll('/', '') + detailedAddress}`
+      )
+      // const location = res.geocodes.location
+      const data: any = await res.json()
+      location = data.geocodes[0].location
+    } catch (error) {
+      return badRequestResponse(res, error as string)
+    }
+
     // 创建地址数据
     const addressData: CreateAddressData = {
       name,
@@ -297,9 +382,10 @@ export const merchantCreateAddress = async (req: AuthRequest, res: Response): Pr
       area,
       detailedAddress,
       userId: merchantId,
-      type: AddressType.SENDER
+      type: AddressType.SENDER,
+      location
     }
-    
+
     // 调用地址模型的创建方法
     const newAddress = await createAddress(addressData)
 
@@ -320,7 +406,10 @@ export const merchantCreateAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 获取商家地址列表（分页）
  */
-export const merchantGetAddresses = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantGetAddresses = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const merchantId = req.user?.id
     // 获取分页参数，默认为第1页，每页10条
@@ -337,7 +426,7 @@ export const merchantGetAddresses = async (req: AuthRequest, res: Response): Pro
 
     // 调用地址模型的查询方法
     const allAddresses = await findAddressesByMerchantId(merchantId)
-    
+
     // 计算分页数据
     const start = (page - 1) * pageSize
     const end = start + pageSize
@@ -368,7 +457,10 @@ export const merchantGetAddresses = async (req: AuthRequest, res: Response): Pro
 /**
  * 根据ID获取商家地址
  */
-export const merchantGetAddressById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantGetAddressById = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const merchantId = req.user?.id
@@ -383,8 +475,12 @@ export const merchantGetAddressById = async (req: AuthRequest, res: Response): P
 
     // 调用地址模型的查询方法
     const address = await findAddressById(parseInt(id))
-    
-    if (!address || address.userId !== merchantId || address.type !== AddressType.SENDER) {
+
+    if (
+      !address ||
+      address.userId !== merchantId ||
+      address.type !== AddressType.SENDER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
@@ -409,7 +505,10 @@ export const merchantGetAddressById = async (req: AuthRequest, res: Response): P
 /**
  * 更新商家地址
  */
-export const merchantUpdateAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantUpdateAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<any> => {
   try {
     const { id } = req.params
     const { name, phone, area, detailedAddress } = req.body
@@ -422,10 +521,14 @@ export const merchantUpdateAddress = async (req: AuthRequest, res: Response): Pr
       })
       return
     }
-    
+
     // 检查地址是否存在且属于当前用户
     const existingAddress = await findAddressById(parseInt(id))
-    if (!existingAddress || existingAddress.userId !== merchantId || existingAddress.type !== AddressType.SENDER) {
+    if (
+      !existingAddress ||
+      existingAddress.userId !== merchantId ||
+      existingAddress.type !== AddressType.SENDER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
@@ -433,14 +536,28 @@ export const merchantUpdateAddress = async (req: AuthRequest, res: Response): Pr
       return
     }
 
+    let location = ''
+    try {
+      const res = await fetch(
+        process.env.MAP_BASE_URL +
+          `/geocode/geo?key=${process.env.MAP_API_KEY}&address=${area.replaceAll('/', '') + detailedAddress}`
+      )
+      // const location = res.geocodes.location
+      const data: any = await res.json()
+      location = data.geocodes[0].location
+    } catch (error) {
+      return badRequestResponse(res, error as string)
+    }
+
     // 准备更新数据
     const updateData: UpdateAddressData = {
       name,
       phone,
       area,
-      detailedAddress
+      detailedAddress,
+      location
     }
-    
+
     // 调用地址模型的更新方法
     const updatedAddress = await updateAddress(parseInt(id), updateData)
 
@@ -461,7 +578,10 @@ export const merchantUpdateAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 删除商家地址
  */
-export const merchantDeleteAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantDeleteAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const merchantId = req.user?.id
@@ -476,17 +596,21 @@ export const merchantDeleteAddress = async (req: AuthRequest, res: Response): Pr
 
     // 检查地址是否存在且属于当前用户
     const existingAddress = await findAddressById(parseInt(id))
-    if (!existingAddress || existingAddress.userId !== merchantId || existingAddress.type !== AddressType.SENDER) {
+    if (
+      !existingAddress ||
+      existingAddress.userId !== merchantId ||
+      existingAddress.type !== AddressType.SENDER
+    ) {
       res.status(404).json({
         code: 404,
         message: '地址不存在或无权访问'
       })
       return
     }
-    
+
     // 调用地址模型的删除方法
     const deleted = await deleteAddress(parseInt(id))
-    
+
     if (!deleted) {
       res.status(400).json({
         code: 400,
@@ -511,7 +635,10 @@ export const merchantDeleteAddress = async (req: AuthRequest, res: Response): Pr
 /**
  * 设置商家默认地址
  */
-export const merchantSetDefaultAddress = async (req: AuthRequest, res: Response): Promise<void> => {
+export const merchantSetDefaultAddress = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params
     const merchantId = req.user?.id

@@ -24,8 +24,13 @@ export interface CreateOrderParams {
 export interface OrderQueryParams {
   page?: number
   limit?: number
+  canDeliver?: boolean | string
   orderNumber?: string
   status?: OrderStatus
+  receiver?: string
+  productName?: string
+  phone?: string
+  createTimeRange?: string[]
 }
 
 /**

@@ -8,17 +8,14 @@ export default tseslint.config(
   { ignores: ['dist'] },
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     plugins: {
       'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      'react-refresh': reactRefresh
     },
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: globals.browser
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -26,7 +23,8 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'react-hooks/exhaustive-deps': 'off',
-       'react-hooks/set-state-in-effect': 'off'
-    },
+      'react-hooks/set-state-in-effect': 'off',
+      'react-refresh/only-export-components': 'off'
+    }
   }
 )

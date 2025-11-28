@@ -5,6 +5,8 @@ import {
   getConsumerOrdersHandler,
   getMerchantOrdersHandler,
   getOrderDetailHandler,
+  getConsumerOrderDetailHandler,
+  getMerchantOrderDetailHandler,
   updateOrderStatusHandler
 } from '../controllers/orderController';
 
@@ -21,8 +23,14 @@ router.get('/consumer', consumerProtect, getConsumerOrdersHandler);
 // 获取商家订单列表（支持筛选）
 router.get('/merchant', merchantProtect, getMerchantOrdersHandler);
 
-// 获取订单详情（用户和商家都可访问，但有权限验证）
-router.get('/:id', consumerProtect, getOrderDetailHandler);
+// 获取消费者订单详情
+router.get('/consumer/:id', consumerProtect, getConsumerOrderDetailHandler);
+
+// 获取商家订单详情
+router.get('/merchant/:id', merchantProtect, getMerchantOrderDetailHandler);
+
+// 获取订单详情（用户和商家都可访问，但有权限验证）- 保留以兼容现有代码
+// router.get('/:id', consumerProtect, getOrderDetailHandler);
 
 // 商家端更新订单状态（发货等）
 router.put('/:id/status', merchantProtect, updateOrderStatusHandler);

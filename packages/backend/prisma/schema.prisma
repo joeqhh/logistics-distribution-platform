@@ -66,6 +66,7 @@ model Address {
   name            String   @db.VarChar(50)
   phone           String?  @db.VarChar(20)
   area            String?  @db.VarChar(255)
+  location        String?  @db.VarChar(127)
   detailedAddress String?  @db.VarChar(500) @map("detailed_address")
   isDeleted       Boolean  @default(false) @map("is_deleted")
   createTime      DateTime @default(now()) @map("create_time")

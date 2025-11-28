@@ -4,78 +4,75 @@ import {
   Checkbox,
   Link,
   Button,
-  Space,
-} from '@arco-design/web-react';
-import { FormInstance } from '@arco-design/web-react/es/Form';
-import { IconLock, IconUser } from '@arco-design/web-react/icon';
-import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
-import useStorage from '@/utils/useStorage';
-import styles from './style/index.module.less';
+  Space
+} from '@arco-design/web-react'
+import { FormInstance } from '@arco-design/web-react/es/Form'
+import { IconLock, IconUser } from '@arco-design/web-react/icon'
+import React, { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
+import useStorage from '@/utils/useStorage'
+import styles from './style/index.module.less'
 
 export default function LoginForm() {
-  const formRef = useRef<FormInstance>();
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const formRef = useRef<FormInstance>()
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(false)
   const [loginParams, setLoginParams, removeLoginParams] =
-    useStorage('loginParams');
-  
+    useStorage('loginParams')
 
-  const [rememberPassword, setRememberPassword] = useState(!!loginParams);
+  const [rememberPassword, setRememberPassword] = useState(!!loginParams)
 
   function afterLoginSuccess(params: any) {
     // 记住密码
     if (rememberPassword) {
-      setLoginParams(JSON.stringify(params));
+      setLoginParams(JSON.stringify(params))
     } else {
-      removeLoginParams();
+      removeLoginParams()
     }
     // 记录登录状态
-    localStorage.setItem('userStatus', 'login');
+    localStorage.setItem('userStatus', 'login')
     // 跳转首页
-    window.location.href = '/';
+    window.location.href = '/'
   }
 
   function login(params: any) {
-    setErrorMessage('');
-    setLoading(true);
+    setErrorMessage('')
+    setLoading(true)
     axios
       .post('/api/user/login', params)
       .then((res) => {
-        const { status, msg } = res.data;
+        const { status, msg } = res.data
         if (status === 'ok') {
-          afterLoginSuccess(params);
+          afterLoginSuccess(params)
         } else {
-          setErrorMessage(msg || '登录出错，请刷新重试');
+          setErrorMessage(msg || '登录出错，请刷新重试')
         }
       })
       .finally(() => {
-        setLoading(false);
-      });
+        setLoading(false)
+      })
   }
 
   function onSubmitClick() {
     formRef.current?.validate().then((values) => {
-      login(values);
-    });
+      login(values)
+    })
   }
 
   // 读取 localStorage，设置初始值
   useEffect(() => {
-    const rememberPassword = !!loginParams;
-    setRememberPassword(rememberPassword);
+    const rememberPassword = !!loginParams
+    setRememberPassword(rememberPassword)
     if (formRef.current && rememberPassword) {
-      const parseParams = JSON.parse(loginParams);
-      formRef.current.setFieldsValue(parseParams);
+      const parseParams = JSON.parse(loginParams)
+      formRef.current.setFieldsValue(parseParams)
     }
-  }, [loginParams]);
+  }, [loginParams])
 
   return (
     <div className={styles['login-form-wrapper']}>
       <div className={styles['login-form-title']}>登录 Arco Design Pro</div>
-      <div className={styles['login-form-sub-title']}>
-        登录 Arco Design Pro
-      </div>
+      <div className={styles['login-form-sub-title']}>登录 Arco Design Pro</div>
       <div className={styles['login-form-error-msg']}>{errorMessage}</div>
       <Form
         className={styles['login-form']}
@@ -117,11 +114,11 @@ export default function LoginForm() {
             type="text"
             long
             className={styles['login-form-register-btn']}
-        >
-          注册账号
-        </Button>
+          >
+            注册账号
+          </Button>
         </Space>
       </Form>
     </div>
-  );
+  )
 }

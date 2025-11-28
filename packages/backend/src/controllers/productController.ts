@@ -24,6 +24,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import { ProductStatus, OrderStatus, LogisticsStatus } from '../generated/prisma/enums'
 import { createOrder } from '../models/Order'
+import {  findAddressById} from '../models/Address'
 import { createLogistics } from '../models/Logistics'
 import { randomUUID } from 'crypto'
 
@@ -251,25 +252,26 @@ export const placeOrderHandler = async (req: AuthRequest, res: Response) => {
     // 创建订单
     const newOrder = await createOrder(orderData);
     
-    // 获取地址经纬度（这里可以从地址信息中获取具体地址，现在使用默认值）
-    const location = '115.801325,28.656317';
+    // const address = await findAddressById(receiveAddressId)
+
+    // // 获取地址经纬度（这里可以从地址信息中获取具体地址，现在使用默认值）
     
-    // 创建物流信息
-    const logisticsData = {
-      orderId: newOrder.id,
-      status: LogisticsStatus.WAITDISPATCH,
-      describe: '用户已下单，待商家发货',
-      location
-    };
+    // // 创建物流信息
+    // const logisticsData = {
+    //   orderId: newOrder.id,
+    //   status: LogisticsStatus.WAITDISPATCH,
+    //   describe: '用户已下单，待商家发货',
+    //   location: address?.location || undefined
+    // };
     
-    const newLogistics = await createLogistics(logisticsData);
+    // const newLogistics = await createLogistics(logisticsData);
     
     // 更新商品销量
     await updateProductSales(productId);
     
     return successResponse(res, { 
       order: newOrder, 
-      logistics: newLogistics,
+      // logistics: newLogistics,
       product: {
         id: product.id,
         name: product.name,
