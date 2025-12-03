@@ -25,9 +25,7 @@ enum AddressType {
 }
 
 enum OrderStatus {
-  WAITDISPATCH
-  DISPATCHED
-  PICKUPED
+  WAITDELIVER
   TRANSPORTING
   DELIVERING
   WAITRECEIVE
@@ -35,9 +33,7 @@ enum OrderStatus {
 }
 
 enum LogisticsStatus {
-  WAITDISPATCH
-  DISPATCHED
-  PICKUPED
+  WAITDELIVER
   TRANSPORTING
   DELIVERING
   WAITRECEIVE
@@ -120,7 +116,7 @@ model Order {
   id          String      @id
   number      String      @unique @db.VarChar(50)
   receiptTime DateTime?   @map("receipt_time")
-  status      OrderStatus @default(WAITDISPATCH)
+  //status      OrderStatus @default(WAITDELIVER)
   company     String?     @db.VarChar(100)
   isDeleted   Boolean     @default(false) @map("is_deleted")
   createTime  DateTime    @default(now()) @map("create_time")
@@ -145,12 +141,11 @@ model Order {
 model Logistics {
   id         Int            @id @default(autoincrement())
   orderId    String         @unique @map("order_id")
-  status     LogisticsStatus @default(WAITDISPATCH)
-  describe   String?        @db.Text
-  location   String?        @db.VarChar(255)
+  status     LogisticsStatus @default(WAITDELIVER)
+  describe   String?        @db.VarChar(255)
+  location   String?        @db.Text
   isDeleted  Boolean        @default(false) @map("is_deleted")
   createTime DateTime       @default(now()) @map("create_time")
-  updateTime DateTime       @updatedAt @map("update_time")
   
   // 关系
   order      Order          @relation(fields: [orderId], references: [id])

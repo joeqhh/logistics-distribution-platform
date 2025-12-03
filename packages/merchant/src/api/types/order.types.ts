@@ -26,7 +26,7 @@ export interface OrderQueryParams {
   limit?: number
   canDeliver?: boolean | string
   orderNumber?: string
-  status?: OrderStatus
+  status?: string
   receiver?: string
   productName?: string
   phone?: string

@@ -1,7 +1,6 @@
 import  { useState, useMemo, useRef, useEffect } from 'react'
 import { Switch, Route, Redirect, useHistory } from 'react-router-dom'
 import { Layout, Menu, Breadcrumb, Spin } from '@arco-design/web-react'
-import cs from 'classnames'
 import {
   IconApps,
   IconOrderedList,
@@ -12,12 +11,12 @@ import {
 import { useStore } from '@/store'
 import qs from 'query-string'
 import NProgress from 'nprogress'
-import Navbar from '@/components/NavBar'
 import useRoute, { IRoute } from '@/routes'
 import { isArray } from '@/utils/is'
 import getUrlParams from '@/utils/getUrlParams'
 import lazyload from '@/utils/lazyload' // 使用@路径别名导入，确保能正确解析.tsx文件
 import 'nprogress/nprogress.css'
+import Header from './header'
 
 import styles from './index.module.less'
 
@@ -42,7 +41,6 @@ function getIconFromKey(key: string) {
 
 function getFlattenRoutes(routes: IRoute[]) {
   const mod: any = import.meta.glob('../views/**/[a-z[]*.tsx')
-
   const res: IRoute[] = []
   function travel(_routes: IRoute[]) {
     _routes.forEach((route) => {
@@ -89,7 +87,6 @@ function PageLayout() {
   const navbarHeight = 60
   const menuWidth = collapsed ? 48 : settings?.menuWidth
 
-  const showNavbar = settings?.navbar && urlParams.navbar !== false
   const showMenu = settings?.menu && urlParams.menu !== false
 
   const flattenRoutes = useMemo(() => getFlattenRoutes(routes) || [], [routes])
@@ -191,13 +188,7 @@ function PageLayout() {
   }, [pathname])
   return (
     <Layout className={styles.layout}>
-      <div
-        className={cs(styles['layout-navbar'], {
-          [styles['layout-navbar-hidden']]: !showNavbar
-        })}
-      >
-        <Navbar show={Boolean(showNavbar)} />
-      </div>
+      <Header />
       {userLoading ? (
         <Spin className={styles['spin']} />
       ) : (

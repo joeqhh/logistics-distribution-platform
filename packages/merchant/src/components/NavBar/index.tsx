@@ -134,61 +134,13 @@ function Navbar({ show }: { show: boolean }) {
         </div>
       </div>
       <ul className={styles.right}>
-        <li>
-          <Input.Search
-            className={styles.round}
-            placeholder="输入内容查询"
-          />
-        </li>
-        {/* <li>
-          <Select
-            triggerElement={<IconButton icon={<IconLanguage />} />}
-            options={[
-              { label: '中文', value: 'zh-CN' },
-              { label: 'English', value: 'en-US' },
-            ]}
-            value={lang}
-            triggerProps={{
-              autoAlignPopupWidth: false,
-              autoAlignPopupMinWidth: true,
-              position: 'br',
-            }}
-            trigger="hover"
-            onChange={(value) => {
-              setLang(value);
-              Message.info(`语言切换至 ${value}`);
-            }}
-          />
-        </li> */}
-        {/* <li>
-          <MessageBox>
-            <IconButton icon={<IconNotification />} />
-          </MessageBox>
-        </li> */}
-        {/* <li>
-          <Tooltip
-            content={
-              theme === 'light'
-                ? '点击切换为暗黑模式'
-                : '点击切换为亮色模式'
-            }
-          >
-            <IconButton
-              icon={theme !== 'dark' ? <IconMoonFill /> : <IconSunFill />}
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            />
-          </Tooltip>
-        </li> */}
-        {/* <Settings /> */}
-        {userInfo && (
           <li>
             <Dropdown droplist={droplist} position="br">
               <Avatar size={32} style={{ cursor: 'pointer' }}>
-                <img alt="avatar" src={userInfo.avatar} />
+                <img alt="avatar" src={userInfo?.avatar} />
               </Avatar>
             </Dropdown>
           </li>
-        )}
       </ul>
     </div>
   );

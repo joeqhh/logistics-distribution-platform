@@ -9,8 +9,8 @@ export enum AddressType {
 export interface Address {
   id: number;
   name: string;
-  phone: string | null;
-  area: string | null; // 格式: "省 市 区"
+  phone: string;
+  area: string; // 格式: "省 市 区"
   detailedAddress: string | null;
   userId: number;
   isDeleted: boolean;

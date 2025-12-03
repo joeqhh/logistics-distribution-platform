@@ -5,6 +5,7 @@ import {
   getConsumerOrdersHandler,
   getMerchantOrdersHandler,
   getOrderDetailHandler,
+  deliverOrderHandler,
   getConsumerOrderDetailHandler,
   getMerchantOrderDetailHandler,
   updateOrderStatusHandler
@@ -34,5 +35,7 @@ router.get('/merchant/:id', merchantProtect, getMerchantOrderDetailHandler);
 
 // 商家端更新订单状态（发货等）
 router.put('/:id/status', merchantProtect, updateOrderStatusHandler);
+
+router.post('/:id/deliver', merchantProtect, deliverOrderHandler);
 
 export default router;

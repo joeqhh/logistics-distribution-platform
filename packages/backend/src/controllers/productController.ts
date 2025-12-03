@@ -252,33 +252,25 @@ export const placeOrderHandler = async (req: AuthRequest, res: Response) => {
     // 创建订单
     const newOrder = await createOrder(orderData);
     
-    // const address = await findAddressById(receiveAddressId)
+    const address = await findAddressById(receiveAddressId)
 
     // // 获取地址经纬度（这里可以从地址信息中获取具体地址，现在使用默认值）
     
-    // // 创建物流信息
-    // const logisticsData = {
-    //   orderId: newOrder.id,
-    //   status: LogisticsStatus.WAITDISPATCH,
-    //   describe: '用户已下单，待商家发货',
-    //   location: address?.location || undefined
-    // };
+    // 创建物流信息
+    const logisticsData = {
+      orderId: newOrder.id,
+      status: LogisticsStatus.WAITDELIVER,
+      describe: '用户已下单，待商家发货',
+      location: address?.location || undefined,
+      createTime: new Date()
+    };
     
-    // const newLogistics = await createLogistics(logisticsData);
+    const newLogistics = await createLogistics(logisticsData);
     
     // 更新商品销量
     await updateProductSales(productId);
     
-    return successResponse(res, { 
-      order: newOrder, 
-      // logistics: newLogistics,
-      product: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        cover: product.cover
-      }
-    }, '下单成功');
+    return successResponse(res,null, '下单成功');
   } catch (error) {
     console.error('下单失败:', error);
     return errorResponse(res, '下单失败');

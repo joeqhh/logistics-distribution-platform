@@ -1,5 +1,8 @@
+import { Address } from '@/generated/prisma/client'
 import { prisma } from '../config/prisma'
 import { OrderStatus } from '../generated/prisma/enums'
+import { LogisticsStatus } from '../generated/prisma/enums'
+import { getOrderLatestLogisticsStatus } from './Logistics'
 import { randomUUID } from 'crypto'
 
 export { OrderStatus }
@@ -18,6 +21,8 @@ export interface Order {
   productId: string
   receiveAddressId: number
   senderAddressId?: number
+  receiveAddress: Address
+  senderAddress?: Address
 }
 
 export interface CreateOrderData {
@@ -34,19 +39,18 @@ export interface CreateOrderData {
 
 export interface UpdateOrderData {
   receiptTime?: Date
-  status?: OrderStatus
   company?: string
+  senderAddressId?: number
+  // 注意：status字段已从数据库中移除，应使用updateOrderStatus函数更新订单状态
 }
-
 // 根据ID查找订单
-export const findOrderById = async (id: string): Promise<any | null> => {
-  return await prisma.order.findUnique({
+export const findOrderById = async (id: string): Promise<any> => {
+  const order = await prisma.order.findUnique({
     where: { id, isDeleted: false },
     select: {
       id: true,
       number: true,
       receiptTime: true,
-      status: true,
       company: true,
       isDeleted: true,
       createTime: true,
@@ -69,7 +73,8 @@ export const findOrderById = async (id: string): Promise<any | null> => {
           name: true,
           phone: true,
           area: true,
-          detailedAddress: true
+          detailedAddress: true,
+          location: true
         }
       },
       senderAddress: {
@@ -78,11 +83,22 @@ export const findOrderById = async (id: string): Promise<any | null> => {
           name: true,
           phone: true,
           area: true,
-          detailedAddress: true
+          detailedAddress: true,
+          location: true
         }
       }
     }
-  })
+  });
+  
+  if (!order) return null;
+  
+  // 获取最新物流状态并替换
+  const latestStatus = await getOrderLatestLogisticsStatus(id);
+  
+  return {
+    ...order,
+    status: latestStatus // 只返回从物流记录获取的状态
+  };
 }
 
 // 根据订单号查找订单
@@ -95,7 +111,6 @@ export const findOrderByNumber = async (
       id: true,
       number: true,
       receiptTime: true,
-      status: true,
       company: true,
       isDeleted: true,
       createTime: true,
@@ -128,8 +143,8 @@ export const findOrdersByConsumerId = async (
   const whereCondition = {
     consumerId,
     isDeleted: false,
-    ...(orderNumber ? { number: { contains: orderNumber } } : {}),
-    ...(status ? { status } : {})
+    ...(orderNumber ? { number: { contains: orderNumber } } : {})
+    // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 
   const [orders, total] = await Promise.all([
@@ -139,7 +154,6 @@ export const findOrdersByConsumerId = async (
         id: true,
         number: true,
         receiptTime: true,
-        status: true,
         company: true,
         isDeleted: true,
         createTime: true,
@@ -182,7 +196,24 @@ export const findOrdersByConsumerId = async (
     prisma.order.count({ where: whereCondition })
   ])
 
-  return { orders, total }
+  // 并行获取每个订单的最新物流状态
+  const ordersWithLatestStatus = await Promise.all(
+    orders.map(async (order) => {
+      const latestStatus = await getOrderLatestLogisticsStatus(order.id);
+      return {
+        ...order,
+        status: latestStatus
+      };
+    })
+  );
+
+  // 在代码层面进行status筛选
+  let filteredOrders = ordersWithLatestStatus;
+  if (status) {
+    filteredOrders = ordersWithLatestStatus.filter(order => order.status === status);
+  }
+
+  return { orders: filteredOrders, total }
 }
 
 // 根据商家ID查找订单列表（支持筛选）
@@ -191,11 +222,12 @@ export const findOrdersByMerchantId = async (
   page: number = 1,
   limit: number = 10,
   orderNumber?: string,
-  status?: OrderStatus,
+  status?: LogisticsStatus[],
   receiver?: string,
   productName?: string,
   phone?: string,
-  createTimeRange?: string[]
+  createTimeRange?: string[],
+  company?: string
 ): Promise<{ orders: any[]; total: number }> => {
   const skip = (page - 1) * limit
 
@@ -204,10 +236,10 @@ export const findOrdersByMerchantId = async (
     merchantId,
     isDeleted: false,
     ...(orderNumber ? { number: { contains: orderNumber } } : {}),
-    ...(status ? { status } : {}),
     ...(receiver ? { receiveAddress: { name: { contains: receiver } } } : {}),
     ...(phone ? { receiveAddress: { phone: { contains: phone } } } : {}),
     ...(productName ? { product: { name: { contains: productName } } } : {}),
+    ...(company ? {  company: { equals: company } } : {}),
     ...(createTimeRange
       ? {
           createTime: {
@@ -216,6 +248,7 @@ export const findOrdersByMerchantId = async (
           }
         }
       : {})
+    // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 
   const [orders, total] = await Promise.all([
@@ -225,7 +258,6 @@ export const findOrdersByMerchantId = async (
         id: true,
         number: true,
         receiptTime: true,
-        status: true,
         company: true,
         isDeleted: true,
         createTime: true,
@@ -274,7 +306,25 @@ export const findOrdersByMerchantId = async (
     prisma.order.count({ where: whereCondition })
   ])
 
-  return { orders, total }
+  // 并行获取每个订单的最新物流状态
+  const ordersWithLatestStatus = await Promise.all(
+    orders.map(async (order) => {
+      const latestStatus = await getOrderLatestLogisticsStatus(order.id);
+      return {
+        ...order,
+        status: latestStatus
+      };
+    })
+  );
+  
+  // 在代码层面进行status筛选
+  let filteredOrders = ordersWithLatestStatus;
+  
+  if (status && status.length > 0) {
+    filteredOrders = ordersWithLatestStatus.filter(order => order.status && status.includes(order.status));
+  }
+
+  return { orders: filteredOrders, total }
 }
 
 // 创建新订单
@@ -284,7 +334,6 @@ export const createOrder = async (orderData: CreateOrderData): Promise<any> => {
       id: orderData.id || randomUUID(),
       number: orderData.number,
       receiptTime: orderData.receiptTime,
-      status: OrderStatus.WAITDISPATCH,
       receiveAddressId: orderData.receiveAddressId,
       ...(orderData.senderAddressId && {
         senderAddressId: orderData.senderAddressId
@@ -298,7 +347,6 @@ export const createOrder = async (orderData: CreateOrderData): Promise<any> => {
       id: true,
       number: true,
       receiptTime: true,
-      status: true,
       company: true,
       isDeleted: true,
       createTime: true,
@@ -329,7 +377,6 @@ export const updateOrder = async (
       id: true,
       number: true,
       receiptTime: true,
-      status: true,
       company: true,
       isDeleted: true,
       createTime: true,
@@ -348,35 +395,41 @@ export const updateOrder = async (
   })
 }
 
-// 更新订单状态
+// 更新订单状态（通过创建新的物流记录实现）
 export const updateOrderStatus = async (
   id: string,
-  status: OrderStatus
+  status: LogisticsStatus,
+  describe?: string,
+  location?: string
 ): Promise<any | null> => {
-  return await prisma.order.update({
-    where: { id, isDeleted: false },
-    data: { status },
-    select: {
-      id: true,
-      number: true,
-      receiptTime: true,
-      status: true,
-      company: true,
-      isDeleted: true,
-      createTime: true,
-      updateTime: true,
-      consumerId: true,
-      merchantId: true,
-      productId: true,
-      product: {
-        select: {
-          id: true,
-          name: true,
-          cover: true
-        }
-      }
+  try {
+    // 首先检查订单是否存在
+    const orderExists = await prisma.order.findUnique({
+      where: { id, isDeleted: false },
+      select: { id: true }
+    });
+    
+    if (!orderExists) {
+      return null;
     }
-  })
+    
+    // 创建新的物流记录
+    await prisma.logistics.create({
+      data: {
+        orderId: id,
+        status,
+        describe,
+        location,
+        createTime: new Date()
+      }
+    });
+    
+    // 返回更新后的订单信息（会包含最新的物流状态）
+    return await findOrderById(id);
+  } catch (error) {
+    console.error('更新订单状态失败:', error);
+    return null;
+  }
 }
 
 // 删除订单（软删除）
@@ -406,7 +459,6 @@ export const getAllOrders = async (
         id: true,
         number: true,
         receiptTime: true,
-        status: true,
         company: true,
         isDeleted: true,
         createTime: true,
@@ -429,5 +481,16 @@ export const getAllOrders = async (
     prisma.order.count({ where: { isDeleted: false } })
   ])
 
-  return { orders, total }
+  // 并行获取每个订单的最新物流状态
+  const ordersWithLatestStatus = await Promise.all(
+    orders.map(async (order) => {
+      const latestStatus = await getOrderLatestLogisticsStatus(order.id);
+      return {
+        ...order,
+        status: latestStatus
+      };
+    })
+  );
+
+  return { orders: ordersWithLatestStatus, total }
 }

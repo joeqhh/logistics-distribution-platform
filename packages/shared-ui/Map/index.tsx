@@ -12,8 +12,6 @@ interface MapProps {
 
 export default function Map({className,mapKey,onCreated,style,plugins}:MapProps ) {
 
-  
-
   useEffect(() => {
     let map: any
     AMapLoader.load({
@@ -24,7 +22,7 @@ export default function Map({className,mapKey,onCreated,style,plugins}:MapProps 
       .then((AMap) => {
         map = new AMap.Map('map-container', {
           // 设置地图容器id
-          viewMode: '2D', // 是否为3D地图模式
+          viewMode: '3D', // 是否为3D地图模式
           zoom: 11 // 初始化地图级别
         })
         onCreated?.(map,AMap)

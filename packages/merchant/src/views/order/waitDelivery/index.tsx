@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react'
-
-import { getMerchantOrders, type OrderQueryParams } from '@/api'
+import { useEffect, useState } from 'react'
+import {
+  getMerchantOrders,
+  getMerchantAddresses,
+  merchantDeliverOrder,
+  logisticsCompanies
+} from '@/api'
+import type { OrderQueryParams, Address, Order,logisticsCompany } from '@/api'
 import {
   Image,
   Badge,
@@ -11,17 +16,25 @@ import {
   Input,
   Select,
   DatePicker,
-  Message
+  Message,
+  Modal
 } from '@arco-design/web-react'
 import { formatLocalDateTime } from '@/utils/formatDate'
 import styles from './index.module.less'
 import { IconRefresh, IconSearch } from '@arco-design/web-react/icon'
 
+
 export default function WaitDelivery() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
-  const [orders, setOrders] = useState<any[]>()
-
+  const [orders, setOrders] = useState<Order[]>()
+  const [deliverOrder, setDeliverOrder] = useState<Order>()
+  const [senderAddressOptions, setSenderAddressOptions] = useState<Address[]>()
+  const [selectedSenderAddressId, setSelectedSenderAddressId] =
+    useState<number>()
+  const [selectedLogisticCompany, setSelectedLogisticCompany] =
+    useState<logisticsCompany>()
+  const [modalVisible, setModalVisible] = useState(false)
   const [pagination, setPagination] = useState({
     sizeCanChange: true,
     showTotal: true,
@@ -82,7 +95,12 @@ export default function WaitDelivery() {
       dataIndex: 'createTime',
       sorter: (a: any, b: any) =>
         new Date(a.createTime) > new Date(b.createTime) ? 1 : -1,
-      render: (col: any, record: any) => formatLocalDateTime(record.createTime)
+      render: (col: any, record: any) =>
+        formatLocalDateTime(
+          new Date(record.createTime).toLocaleString('zh-CN', {
+            timeZone: 'Asia/Shanghai'
+          })
+        )
     },
     {
       title: '配送状态',
@@ -115,25 +133,6 @@ export default function WaitDelivery() {
       dataIndex: 'operation',
       align: 'left' as const,
       render: (col: any, record: any) => {
-        //   const handleUpdateAddress = async () => {
-        //     setAddressModalOperateType('UPDATE')
-        //     setUpdatedAddress(record)
-        //     setAddressModalVisible(true)
-        //   }
-
-        //   const handleDeleteAddress = async () => {
-        //     try {
-        //       setLoading(true)
-        //       await deleteAddress(record.id)
-        //       Message.success('删除成功')
-        //       initMerchantAddresses()
-        //     } catch (error) {
-        //       Message.error('删除失败，请重试')
-        //     } finally {
-        //       setLoading(false)
-        //     }
-        //   }
-
         return (
           <>
             <Space>
@@ -141,7 +140,8 @@ export default function WaitDelivery() {
                 type="text"
                 size="small"
                 style={{ padding: 0 }}
-                // onClick={handleUpdateAddress}
+                // onClick={() => window.open(`/deliver/${record.id}`,'_blank')}
+                onClick={() => handleShowDeliverModal(record)}
               >
                 发货
               </Button>
@@ -176,10 +176,9 @@ export default function WaitDelivery() {
   }
 
   const onChangeTable = (pagination: any, _: any, filters: any) => {
-
     const { current, pageSize } = pagination
     handleGetMerchantOrders({
-      status: 'WAITDISPATCH',
+      status: 'WAITDELIVER',
       page: current,
       limit: pageSize,
       canDeliver: filters.canDeliver?.[0]
@@ -189,19 +188,114 @@ export default function WaitDelivery() {
   const handleOnSubmitForm = (values: any) => {
     const { current, pageSize } = pagination
     handleGetMerchantOrders({
-      status: 'WAITDISPATCH',
+      status: 'WAITDELIVER',
       page: current,
       limit: pageSize,
       ...values
     })
   }
 
+  const formatAddress = (address: Address | null | undefined) => {
+    if (!address) return ''
+    const { name, phone, area, detailedAddress } = address
+    return (
+      name +
+      ',' +
+      phone +
+      ',' +
+      area.replaceAll('/', '') +
+      (detailedAddress || '')
+    )
+  }
+
+  const handleShowDeliverModal = (record: Order) => {
+    getMerchantAddresses().then((res) => {
+      console.log(res)
+      setSenderAddressOptions(res.data.items)
+      // setSenderAddressOptions()
+      setDeliverOrder(record)
+      setModalVisible(true)
+    })
+  }
+
+  const handleOnDeliverOrder = () => {
+    if (selectedSenderAddressId && selectedLogisticCompany) {
+      merchantDeliverOrder(
+        deliverOrder!.id,
+        selectedSenderAddressId,
+        selectedLogisticCompany
+      )
+        .then((res) => {
+          handleGetMerchantOrders({ status: 'WAITDELIVER' })
+          Message.success('发货成功!')
+          setModalVisible(false)
+        })
+        .catch((error) => {
+          Message.error('发货失败!')
+        })
+    } else if (!selectedSenderAddressId) {
+      Message.info('请选择发货地址!')
+    } else {
+      Message.info('请选择快递公司!')
+    }
+  }
+
   useEffect(() => {
-    handleGetMerchantOrders({ status: 'WAITDISPATCH' })
+    handleGetMerchantOrders({ status: 'WAITDELIVER' })
   }, [])
 
   return (
     <>
+      {modalVisible && (
+        <Modal
+          title="发货地址选择"
+          visible={modalVisible}
+          onOk={() => {
+            handleOnDeliverOrder()
+          }}
+          onCancel={() => {
+            setModalVisible(false)
+          }}
+          autoFocus={false}
+          focusLock={true}
+        >
+          <Form>
+            <Form.Item label="收货地址">
+              <Input
+                placeholder="请输入订单号"
+                defaultValue={formatAddress(deliverOrder?.receiveAddress)}
+                disabled
+              />
+            </Form.Item>
+            <Form.Item
+              label="发货地址"
+              rules={[{ required: true, message: '请选择发货地址' }]}
+            >
+              <Select
+                placeholder="请选择发货地址"
+                onChange={(value) => setSelectedSenderAddressId(value)}
+                options={senderAddressOptions?.map((address) => ({
+                  label: formatAddress(address),
+                  value: address.id
+                }))}
+              />
+            </Form.Item>
+            <Form.Item
+              label="快递公司"
+              rules={[{ required: true, message: '请选择快递公司' }]}
+            >
+              <Select
+                placeholder="请选择快递公司"
+                onChange={(value) => setSelectedLogisticCompany(value)}
+                options={logisticsCompanies?.map((company) => ({
+                  label: company,
+                  value: company
+                }))}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
       <div className={styles['wait-delivery-container']}>
         <Form
           form={form}
@@ -232,7 +326,7 @@ export default function WaitDelivery() {
           </Form.Item>
 
           <Form.Item label="下单时间" field="createTimeRange">
-            <DatePicker.RangePicker />
+            <DatePicker.RangePicker style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item label="收货人" field="receiver">
