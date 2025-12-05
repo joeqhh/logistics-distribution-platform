@@ -1,4 +1,4 @@
-import  { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Switch, Route, Redirect, useHistory } from 'react-router-dom'
 import { Layout, Menu, Breadcrumb, Spin } from '@arco-design/web-react'
 import {
@@ -6,7 +6,8 @@ import {
   IconOrderedList,
   IconMenuFold,
   IconMenuUnfold,
-  IconLocation
+  IconLocation,
+  IconUser
 } from '@arco-design/web-react/icon'
 import { useStore } from '@/store'
 import qs from 'query-string'
@@ -31,9 +32,11 @@ function getIconFromKey(key: string) {
     case 'product':
       return <IconApps className={styles.icon} />
     case 'order':
-      return <IconOrderedList className={styles.icon}  />
+      return <IconOrderedList className={styles.icon} />
     case 'address':
-      return <IconLocation className={styles.icon}/>
+      return <IconLocation className={styles.icon} />
+    case 'user':
+      return <IconUser className={styles.icon} />
     default:
       return <div className={styles['icon-empty']} />
   }
@@ -66,9 +69,9 @@ function PageLayout() {
   const history = useHistory()
   const pathname = history.location.pathname
   const currentComponent = qs.parseUrl(pathname).url.slice(1)
-  const { settings, userLoading, userInfo } = useStore()
+  const { settings, userLoading, initUserInfo } = useStore()
 
-  const [routes, defaultRoute] = useRoute(userInfo?.permissions)
+  const [routes, defaultRoute] = useRoute({})
   const defaultSelectedKeys = [currentComponent || defaultRoute]
   const paths = (currentComponent || defaultRoute).split('/')
   const defaultOpenKeys = paths.slice(0, paths.length - 1)
@@ -186,6 +189,11 @@ function PageLayout() {
     setBreadCrumb(routeConfig || [])
     updateMenuStatus()
   }, [pathname])
+
+  useEffect(() => {
+    initUserInfo()
+  }, [])
+
   return (
     <Layout className={styles.layout}>
       <Header />
@@ -227,6 +235,9 @@ function PageLayout() {
               {!!breadcrumb.length && (
                 <div className={styles['layout-breadcrumb']}>
                   <Breadcrumb>
+                  <Breadcrumb.Item key={-1}>
+                    {getIconFromKey(pathname.split('/')[1])}
+                  </Breadcrumb.Item>
                     {breadcrumb.map((node, index) => (
                       <Breadcrumb.Item key={index}>{node}</Breadcrumb.Item>
                     ))}

@@ -1,0 +1,166 @@
+.homeContainer {
+  padding-bottom: 40px;
+}
+
+
+/* 商品样式 */
+.productsContainer {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.moreLink {
+  color: #ff4d4f;
+  text-decoration: none;
+}
+
+.productCard {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+}
+
+.productImage {
+  height: 200px;
+  object-fit: cover;
+}
+
+.productPrice {
+  margin-bottom: 10px;
+}
+
+.currentPrice {
+  color: #ff4d4f;
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.originalPrice {
+  color: #999;
+  font-size: 14px;
+  text-decoration: line-through;
+}
+
+.productFooter {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.productSales {
+  color: #999;
+  font-size: 12px;
+}
+
+.productActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  color: #999;
+}
+
+.actionButton:hover {
+  color: #ff4d4f;
+}
+
+.addToCartButton {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.addToCartButton:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+}
+
+/* 促销活动样式 */
+.promotionContainer {
+  margin-bottom: 40px;
+}
+
+.promotionCard {
+  height: 160px;
+  border: none;
+  overflow: hidden;
+  position: relative;
+}
+
+.promotionCard1 {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7a45 100%);
+}
+
+.promotionCard2 {
+  background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
+}
+
+.promotionCard3 {
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+}
+
+.promotionContent {
+  color: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.promotionContent h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+}
+
+.promotionContent p {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.promotionContent .ant-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: white;
+  color: white;
+}
+
+.promotionContent .ant-btn:hover {
+  background-color: white;
+  color: #ff4d4f;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .carouselItem {
+    height: 200px;
+  }
+  
+  .categoryGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .categoryIcon {
+    font-size: 24px;
+  }
+  
+  .promotionCard {
+    margin-bottom: 16px;
+  }
+}

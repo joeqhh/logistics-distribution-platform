@@ -3,12 +3,76 @@
   padding-top: 60px;
 }
 
-.deliver-content {
+.logistics-content {
   margin: 0 auto;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   max-width: 942px;
   // min-width: 1072px;
+
+  :global(.arco-timeline-item-dot-wrapper .arco-timeline-item-dot-content) {
+    width: 12px;
+  }
+
+  :global(.arco-timeline-item-dot) {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.logistics-content-product-text {
+  flex: 1;
+  margin-left: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  overflow: hidden;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+    display: block;
+  }
+}
+
+.logistics-content-product {
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 16px !important;
+  color: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logistics-content-company {
+  width: 100%;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 10px 0 20px 0;
+  color: #111;
+  display: flex;
+  align-items: center;
+}
+
+.logistics-content-receiver {
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.92);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.logistics-content-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
 }

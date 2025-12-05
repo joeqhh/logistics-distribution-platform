@@ -2,14 +2,24 @@ import { Request, Response } from 'express'
 import { updateMerchant } from '../models/Merchant'
 import { AuthRequest } from '../middleware/authCheck'
 import { Merchant } from '../models/Merchant'
-import { successResponse, errorResponse, badRequestResponse, notFoundResponse } from "../utils/response";
+import {
+  successResponse,
+  errorResponse,
+  badRequestResponse,
+  notFoundResponse
+} from '../utils/response'
+import { generateRandomFilename } from '../utils/file'
+import minioClient from '../utils/minioClient'
 
 /**
  * 更新商家配送区域
  * @param req 请求对象，包含商家信息和新的配送区域数据
  * @param res 响应对象
  */
-export const updateMerchantDeliveryArea = async (req: AuthRequest, res: Response) => {
+export const updateMerchantDeliveryArea = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     // 从请求体中获取配送区域数据
     const { deliveryArea } = req.body
@@ -36,10 +46,14 @@ export const updateMerchantDeliveryArea = async (req: AuthRequest, res: Response
     }
 
     // 返回成功响应
-    return successResponse(res, {
-      id: updatedMerchant.id,
-      deliveryArea: updatedMerchant.deliveryArea
-    }, '配送区域更新成功')
+    return successResponse(
+      res,
+      {
+        id: updatedMerchant.id,
+        deliveryArea: updatedMerchant.deliveryArea
+      },
+      '配送区域更新成功'
+    )
   } catch (error) {
     console.error('更新配送区域错误:', error)
     return errorResponse(res, '服务器错误，更新配送区域失败')
@@ -54,18 +68,70 @@ export const updateMerchantDeliveryArea = async (req: AuthRequest, res: Response
 export const getMerchantInfo = async (req: AuthRequest, res: Response) => {
   try {
     // user信息在merchantProtect中间件中已经设置到req.user
-    const { id, name, address, avatar, deliveryArea, account } = req.user as Merchant
-    return successResponse(res, {
-      id,
-      name,
-      address,
-      avatar,
-      deliveryArea,
-      account
-    }, '获取商家信息成功')
+    const { id, name, avatar, deliveryArea, account, createTime } =
+      req.user as Merchant
+    return successResponse(
+      res,
+      {
+        id,
+        name,
+        avatar,
+        deliveryArea,
+        account,
+        createTime
+      },
+      '获取商家信息成功'
+    )
   } catch (error) {
     console.error('获取商家信息错误:', error)
     return errorResponse(res, '获取商家信息失败')
+  }
+}
+
+/**
+ * 更新商家信息
+ * @param req
+ * @param res
+ */
+export const updateMerchantInfo = async (req: AuthRequest, res: Response) => {
+  try {
+    // user信息在merchantProtect中间件中已经设置到req.user
+    const { id } = req.user as Merchant
+    const { name } = req.body as Merchant
+
+
+    const files = req.files as Express.Multer.File[]
+    let avatar = undefined
+    if (files.length > 0) {
+      const avatarFile = files[0]
+
+      avatar = generateRandomFilename(avatarFile.originalname)
+      await minioClient.uploadFileBuffer(
+        avatarFile.buffer,
+        avatar,
+        process.env.MINIO_AVATAR_BUCKET
+      )
+    }
+
+    const updatedMerchant = await updateMerchant(id, {
+      name: name || undefined,
+      avatar: avatar && process.env.MINIO_AVATAR_BUCKET! + '/' + avatar
+    })
+
+    return successResponse(
+      res,
+      {
+        id: updatedMerchant?.id,
+        account: updatedMerchant?.account,
+        name: updatedMerchant?.name,
+        avatar: updatedMerchant?.avatar,
+        createTime: updatedMerchant?.createTime
+      },
+      '更新商家信息成功'
+    )
+  } catch (error) {
+    console.error('更新商家信息错误:', error)
+    return errorResponse(res, '更新商家信息失败')
   }
 }
 
@@ -74,16 +140,22 @@ export const getMerchantInfo = async (req: AuthRequest, res: Response) => {
  * @param req 请求对象，包含商家信息
  * @param res 响应对象
  */
-export const getMerchantDeliveryArea = async (req: AuthRequest, res: Response) => {
+export const getMerchantDeliveryArea = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     // user信息在merchantProtect中间件中已经设置到req.user
     const { deliveryArea } = req.user as Merchant
-    return successResponse(res, {
-      deliveryArea
-    }, '获取商家配送区域成功')
+    return successResponse(
+      res,
+      {
+        deliveryArea
+      },
+      '获取商家配送区域成功'
+    )
   } catch (error) {
     console.error('获取商家配送区域错误:', error)
     return errorResponse(res, '获取商家配送区域失败')
   }
 }
-

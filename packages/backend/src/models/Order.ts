@@ -1,4 +1,4 @@
-import { Address } from '@/generated/prisma/client'
+import { Address ,Product} from '@/generated/prisma/client'
 import { prisma } from '../config/prisma'
 import { OrderStatus } from '../generated/prisma/enums'
 import { LogisticsStatus } from '../generated/prisma/enums'
@@ -23,6 +23,7 @@ export interface Order {
   senderAddressId?: number
   receiveAddress: Address
   senderAddress?: Address
+  product?: Product
 }
 
 export interface CreateOrderData {

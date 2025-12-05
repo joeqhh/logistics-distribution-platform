@@ -37,3 +37,16 @@ export const getMerchantDeliveryArea = async (): Promise<{
 }> => {
   return axiosInstance.get('/merchant/delivery-area')
 }
+
+/**
+ * 
+ * @param formData 更新商家信息
+ * @returns 
+ */
+export const updateMerchantInfo = async (formData: FormData) => {
+  return axiosInstance.post('/merchant/info', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

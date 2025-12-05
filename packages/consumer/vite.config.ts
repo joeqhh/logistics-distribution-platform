@@ -20,10 +20,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://8.148.81.252:5001',
+        target: 'http://localhost:3001',
         // target: 'http://127.0.0.1:5000',
         changeOrigin: true, // 修改请求的 origin 为目标服务器的 origin
-        rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去掉 "/api" 前缀
+        // rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去掉 "/api" 前缀
       },
       '/object': {
         target: 'http://8.148.81.252:9000',

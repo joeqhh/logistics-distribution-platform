@@ -78,7 +78,6 @@ model Address {
 model Merchant {
   id           Int      @id @default(autoincrement())
   name         String?  @db.VarChar(100)
-  address      String?  @db.VarChar(500)
   avatar       String?  @db.VarChar(255)
   deliveryArea Json?    @map("delivery_area")
   account      String   @unique @db.VarChar(50)

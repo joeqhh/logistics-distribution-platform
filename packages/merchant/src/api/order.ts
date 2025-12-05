@@ -8,25 +8,23 @@ import type {
   Logistics
 } from './types'
 
-export const logisticsCompanies = [
-  '顺丰速运',
-  '中通快递',
-  '圆通速递',
-  '申通快递',
-  '韵达快递',
-  '京东快递',
-  '邮政EMS',
-  '中国邮政快递包裹',
-  '百世快递',
-  '德邦快递',
-  '极兔速递',
-  '天天快递',
-  '优速快递',
-  '跨越速运',
-  '宅急送',
-  '安能快递',
-  '苏宁物流'
-] as const
+export const logisticsCompaniyLogos = {
+  顺丰速运: '/object/platform-avatar/shunfeng.png',
+  中通快递: '/object/platform-avatar/zhongtong.png',
+  圆通速递: '/object/platform-avatar/yuantong.png',
+  申通快递: '/object/platform-avatar/shentong.png',
+  韵达快递: '/object/platform-avatar/yunda.jpg',
+  京东快递: '/object/platform-avatar/jingdong.png',
+  邮政EMS: '/object/platform-avatar/ems.png',
+  中国邮政快递包裹: '/object/platform-avatar/youzheng.png',
+  百世快递: '/object/platform-avatar/baishi.png',
+  德邦快递: '/object/platform-avatar/debang.png',
+  极兔速递: '/object/platform-avatar/jitu.jpg',
+  天天快递: '/object/platform-avatar/tiantian.png',
+  苏宁物流: '/object/platform-avatar/suning.jpg'
+} as const
+
+export const logisticsCompanies = Object.keys(logisticsCompaniyLogos)
 
 export type logisticsCompany = (typeof logisticsCompanies)[number]
 
@@ -61,7 +59,10 @@ export const getOrderDetail = async (
  * @param params 更新参数
  * @returns 更新结果
  */
-export const updateOrderStatus = async (id: string, params: UpdateOrderStatusParams): Promise<Order> => {
+export const updateOrderStatus = async (
+  id: string,
+  params: UpdateOrderStatusParams
+): Promise<Order> => {
   return axiosInstance.put(`/order/${id}/status`, params)
 }
 

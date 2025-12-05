@@ -3,7 +3,6 @@ import { prisma } from '../config/prisma'
 export interface Merchant {
   id: number
   name: string | null
-  address?: string | null
   avatar?: string | null
   deliveryArea?: any
   account: string
@@ -17,7 +16,6 @@ export interface Merchant {
 export interface CreateMerchantData {
   id?: number
   name?: string
-  address?: string
   avatar?: string
   deliveryArea?: any
   account: string
@@ -26,7 +24,6 @@ export interface CreateMerchantData {
 
 export interface UpdateMerchantData {
   name?: string
-  address?: string
   avatar?: string
   deliveryArea?: any
   password?: string
@@ -54,7 +51,6 @@ export const findMerchantByAccount = async (account: string): Promise<Merchant |
     select: {
       id: true,
       name: true,
-      address: true,
       avatar: true,
       deliveryArea: true,
       account: true,
@@ -72,7 +68,6 @@ export const createMerchant = async (merchantData: CreateMerchantData): Promise<
     data: {
       id: merchantData.id,
       name: merchantData.name,
-      address: merchantData.address,
       avatar: merchantData.avatar,
       deliveryArea: merchantData.deliveryArea,
       account: merchantData.account,
@@ -81,7 +76,6 @@ export const createMerchant = async (merchantData: CreateMerchantData): Promise<
     select: {
       id: true,
       name: true,
-      address: true,
       avatar: true,
       deliveryArea: true,
       account: true,
@@ -101,7 +95,6 @@ export const updateMerchant = async (id: number, merchantData: UpdateMerchantDat
     select: {
       id: true,
       name: true,
-      address: true,
       avatar: true,
       deliveryArea: true,
       account: true,
@@ -136,7 +129,6 @@ export const getAllMerchants = async (page: number = 1, limit: number = 10): Pro
       select: {
         id: true,
         name: true,
-        address: true,
         avatar: true,
         deliveryArea: true,
         account: true,

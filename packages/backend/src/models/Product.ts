@@ -61,13 +61,29 @@ export const findProductsByMerchantId = async (
   merchantId: number,
   page: number = 1,
   limit: number = 10,
-  status?: ProductStatus
+  status?: ProductStatus,
+  name?: string | undefined,
+  id?: string,
+  priceBegin?: number,
+  priceEnd?: number,
+  salesBegin?: number,
+  salesEnd?: number,
+  createTimeBegin?: Date,
+  createTimeEnd?: Date
 ): Promise<{ products: Product[]; total: number }> => {
   const skip = (page - 1) * limit
   const whereCondition = {
     merchantId,
     isDeleted: false,
-    ...(status ? { status } : {})
+    ...(status ? { status } : {}),
+    ...(name ? { name: { contains: name } } : {}),
+    ...(id ? { id } : {}),
+    ...(priceBegin ? { price: { gte: priceBegin } } : {}),
+    ...(priceEnd ? { price: { lte: priceEnd } } : {}),
+    ...(salesBegin ? { sales: { gte: Number(salesBegin) } } : {}),
+    ...(salesEnd ? { sales: { lte: Number(salesEnd) } } : {}),
+    ...(createTimeBegin ? { createTime: { gte: createTimeBegin } } : {}),
+    ...(createTimeEnd ? { createTime: { lte: createTimeEnd } } : {})
   }
 
   const [products, total] = await Promise.all([
@@ -273,9 +289,9 @@ export const getAllProducts = async (
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where: { 
+      where: {
         isDeleted: false,
-        status: ProductStatus.SALE 
+        status: ProductStatus.SALE
       },
       select: {
         id: true,
@@ -294,11 +310,11 @@ export const getAllProducts = async (
       take: limit,
       orderBy: { createTime: 'desc' }
     }),
-    prisma.product.count({ 
-      where: { 
+    prisma.product.count({
+      where: {
         isDeleted: false,
-        status: ProductStatus.SALE 
-      } 
+        status: ProductStatus.SALE
+      }
     })
   ])
 
@@ -318,9 +334,7 @@ export const searchProducts = async (
       where: {
         isDeleted: false,
         status: ProductStatus.SALE,
-        OR: [
-          { name: { contains: keyword } },
-        ]
+        OR: [{ name: { contains: keyword } }]
       },
       select: {
         id: true,
@@ -343,9 +357,7 @@ export const searchProducts = async (
       where: {
         isDeleted: false,
         status: ProductStatus.SALE,
-        OR: [
-          { name: { contains: keyword } },
-        ]
+        OR: [{ name: { contains: keyword } }]
       }
     })
   ])

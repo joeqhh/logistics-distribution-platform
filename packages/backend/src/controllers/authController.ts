@@ -104,7 +104,6 @@ export const merchantRegister = async (req: Request, res: Response): Promise<Res
       name,
       account,
       password: hashedPassword,
-      address,
       avatar,
       deliveryArea
     }
@@ -118,7 +117,6 @@ export const merchantRegister = async (req: Request, res: Response): Promise<Res
       id: newMerchant.id,
       name: newMerchant.name,
       account: newMerchant.account,
-      address: newMerchant.address,
       avatar: newMerchant.avatar,
       deliveryArea: newMerchant.deliveryArea,
       token
@@ -197,7 +195,6 @@ export const merchantLogin = async (req: Request, res: Response): Promise<Respon
       id: merchant.id,
       name: merchant.name,
       account: merchant.account,
-      address: merchant.address,
       avatar: merchant.avatar,
       deliveryArea: merchant.deliveryArea,
       token

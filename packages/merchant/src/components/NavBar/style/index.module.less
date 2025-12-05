@@ -1,5 +1,4 @@
 .navbar {
-  
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid var(--color-border);
@@ -14,6 +13,7 @@
 }
 
 .logo {
+  height: 60px;
   display: flex;
   align-items: center;
   width: 200px;
@@ -21,12 +21,13 @@
   box-sizing: border-box;
 }
 
-.logo-name {
-  color: var(--color-text-1);
-  font-weight: 500;
-  font-size: 20px;
+.logo-icon {
   margin-left: 10px;
-  font-family: 'PingFang SC';
+  img {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+  }
 }
 
 .right {

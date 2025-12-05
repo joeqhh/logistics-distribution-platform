@@ -56,11 +56,11 @@ export default function AddressModal({
         afterClose={() => form.clearFields()}
           unmountOnExit={true}
           maskClosable={false}
+          focusLock={false}
           title={type === 'CREATE' ? "创建地址" : "修改地址"}
           visible={visible}
           onOk={form.submit}
           onCancel={() => {onChange?.(false)}}
-          focusLock={false}
           okButtonProps={{
             loading: submitLoading
           }}

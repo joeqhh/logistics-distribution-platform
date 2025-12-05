@@ -1,0 +1,113 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  padding: 40px 20px;
+}
+
+.card {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  color: #333;
+  margin-bottom: 0;
+  font-weight: 600;
+}
+
+.error {
+  margin-bottom: 20px;
+}
+
+.form {
+  padding: 0 24px 24px;
+}
+
+.formItem {
+  margin-bottom: 20px;
+}
+
+.site-form-item-icon {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.submit {
+  height: 40px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  transition: all 0.3s;
+}
+
+.submit:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+}
+
+.login {
+  text-align: center;
+  margin-top: 16px;
+  color: #666;
+}
+
+.login a {
+  color: #ff4d4f;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.login a:hover {
+  color: #ff7875;
+  text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+  
+  .card {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  
+  .form {
+    padding: 0 16px 16px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .submit {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .form {
+    padding: 0 12px 12px;
+  }
+  
+  .formItem {
+    margin-bottom: 16px;
+  }
+}

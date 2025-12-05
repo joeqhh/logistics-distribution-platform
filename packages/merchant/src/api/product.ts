@@ -21,13 +21,21 @@ export const createProduct = async (formData: FormData): Promise<Product> => {
  * @param limit 每页数量
  * @returns 商品列表和分页信息
  */
-export const getMerchantProducts = async (
-  page: number = 1,
-  limit: number = 10,
+export const getMerchantProducts = async (params: {
+  page?: number
+  limit?: number
   status?: string
-) => {
+  name?: string
+  id?: string
+  priceBegin?: number
+  priceEnd?: number
+  salesBegin?: number
+  salesEnd?: number
+  createTimeBegin?: string
+  createTimeEnd?: string
+}) => {
   return axiosInstance.get('/products', {
-    params: { page, limit, status }
+    params
   })
 }
 

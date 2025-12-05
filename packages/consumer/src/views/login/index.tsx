@@ -1,22 +1,31 @@
 import React, { useState } from 'react'
-import { Form, Input, Button, Card, Checkbox, message } from 'antd'
-import { UserOutlined, LockOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Card, Checkbox, Message, Spin } from '@arco-design/web-react'
+import { IconUser, IconLock } from '@arco-design/web-react/icon'
+import { useHistory } from 'react-router-dom'
+import { useAppStore } from '../../store'
 import styles from './index.module.less'
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
   const [form] = Form.useForm()
+  const history = useHistory()
+  const { login } = useAppStore()
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { username: string; password: string; remember: boolean }) => {
     setLoading(true)
     try {
-      // 这里可以添加实际的登录逻辑
-      console.log('登录信息:', values)
-      message.success('登录成功！')
-      // 模拟登录延迟
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    } catch (error) {
-      message.error('登录失败，请检查用户名和密码')
+      setError('')
+      // 使用全局状态管理中的登录方法
+      await login(values.username, values.password)
+      
+      Message.success('登录成功！')
+      // 登录成功后跳转到首页
+      history.push('/')
+    } catch (err: any) {
+      const errorMessage = err.message || '登录失败，请检查用户名和密码'
+      setError(errorMessage)
+      Message.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -31,12 +40,24 @@ export default function Login() {
             <p className={styles.subtitle}>物流配送平台</p>
           </div>
           
+          {error && (
+            <div className={styles.errorContainer}>
+              <Alert 
+                message="登录失败" 
+                description={error} 
+                type="error" 
+                showIcon 
+              />
+            </div>
+          )}
+          
           <Form
             form={form}
             name="login"
             onFinish={onFinish}
             autoComplete="off"
             size="large"
+            initialValues={{ remember: true }}
           >
             <Form.Item
               name="username"
@@ -46,9 +67,10 @@ export default function Login() {
               ]}
             >
               <Input
-                prefix={<UserOutlined className={styles.inputPrefix} />}
+                prefix={<IconUser className={styles.inputPrefix} />}
                 placeholder="用户名"
                 className={styles.input}
+                disabled={loading}
               />
             </Form.Item>
 
@@ -60,16 +82,17 @@ export default function Login() {
               ]}
             >
               <Input.Password
-                prefix={<LockOutlined className={styles.inputPrefix} />}
+                prefix={<IconLock className={styles.inputPrefix} />}
                 placeholder="密码"
                 className={styles.input}
+                disabled={loading}
               />
             </Form.Item>
 
             <Form.Item>
               <div className={styles.rememberSection}>
                 <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <Checkbox>记住我</Checkbox>
+                  <Checkbox disabled={loading}>记住我</Checkbox>
                 </Form.Item>
                 <a href="#" className={styles.forgotLink}>
                   忘记密码？
@@ -84,14 +107,14 @@ export default function Login() {
                 loading={loading}
                 className={styles.loginButton}
               >
-                登录
+                {loading ? <Spin size="small" /> : '登录'}
               </Button>
             </Form.Item>
 
             <div className={styles.registerSection}>
               <p className={styles.registerText}>
                 还没有账号？
-                <a href="#" className={styles.registerLink}>
+                <a href="/register" className={styles.registerLink}>
                   立即注册
                 </a>
               </p>

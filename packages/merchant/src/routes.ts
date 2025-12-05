@@ -53,8 +53,12 @@ export const routes: IRoute[] = [
       {
         name: '配送范围',
         key: 'address/deliverRange'
-      },
+      }
     ]
+  },
+  {
+    name: '信息',
+    key: 'user'
   }
 ]
 

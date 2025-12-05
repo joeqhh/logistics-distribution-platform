@@ -32,6 +32,8 @@ import IconButton from './IconButton';
 import styles from './style/index.module.less';
 import useStorage from '@/utils/useStorage';
 import { generatePermission } from '@/routes';
+import Logo from '@/assets/logo.png'
+
 
 function Navbar({ show }: { show: boolean }) {
   const { userInfo, updateUserInfo } = useStore();
@@ -54,12 +56,12 @@ function Navbar({ show }: { show: boolean }) {
     }
   }
 
-  useEffect(() => {
-    updateUserInfo({
-      ...userInfo,
-      permissions: generatePermission(role),
-    });
-  }, [role]);
+  // useEffect(() => {
+  //   updateUserInfo({
+  //     ...userInfo,
+  //     permissions: generatePermission(role),
+  //   });
+  // }, [role]);
 
   // if (!show) {
   //   return (
@@ -80,44 +82,6 @@ function Navbar({ show }: { show: boolean }) {
 
   const droplist = (
     <Menu onClickMenuItem={onMenuItemClick}>
-      <Menu.SubMenu
-        key="role"
-        title={
-          <>
-            <IconUser className={styles['dropdown-icon']} />
-            <span className={styles['user-role']}>
-              {role === 'admin'
-                ? '管理员'
-                : '普通用户'}
-            </span>
-          </>
-        }
-      >
-        <Menu.Item onClick={handleChangeRole} key="switch role">
-          <IconTag className={styles['dropdown-icon']} />
-          切换角色
-        </Menu.Item>
-      </Menu.SubMenu>
-      <Menu.Item key="setting">
-        <IconSettings className={styles['dropdown-icon']} />
-        用户设置
-      </Menu.Item>
-      <Menu.SubMenu
-        key="more"
-        title={
-          <div style={{ width: 80 }}>
-            <IconExperiment className={styles['dropdown-icon']} />
-            查看更多
-          </div>
-        }
-      >
-        <Menu.Item key="workplace">
-          <IconDashboard className={styles['dropdown-icon']} />
-          工作台
-        </Menu.Item>
-      </Menu.SubMenu>
-
-      <Divider style={{ margin: '4px 0' }} />
       <Menu.Item key="logout">
         <IconPoweroff className={styles['dropdown-icon']} />
         退出登录
@@ -130,14 +94,16 @@ function Navbar({ show }: { show: boolean }) {
       <div className={styles.left}>
         <div className={styles.logo}>
           {/* <Logo /> */}
-          <div className={styles['logo-name']}>Arco Pro</div>
+          <div className={styles['logo-icon']}>
+            <img src={Logo} alt="" />
+          </div>
         </div>
       </div>
       <ul className={styles.right}>
           <li>
             <Dropdown droplist={droplist} position="br">
               <Avatar size={32} style={{ cursor: 'pointer' }}>
-                <img alt="avatar" src={userInfo?.avatar} />
+                <img alt="avatar" src={userInfo?.avatar ? `/object/${userInfo?.avatar}` : undefined} />
               </Avatar>
             </Dropdown>
           </li>

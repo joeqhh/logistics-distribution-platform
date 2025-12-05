@@ -1,0 +1,251 @@
+.navbar {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff4d4f;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.navLinks {
+  display: flex;
+  gap: 30px;
+  flex: 1;
+  margin-left: 60px;
+}
+
+.navLink {
+  color: #333;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 0;
+  position: relative;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: #ff4d4f;
+  }
+  
+  &:hover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #ff4d4f;
+  }
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #666;
+  
+  &:hover {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: 30px;
+}
+
+.cartButton,
+.userMenuButton,
+.loginButton,
+.registerButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #333;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #f5f5f5;
+    color: #ff4d4f;
+  }
+}
+
+.loginButton {
+  color: #666;
+  
+  &:hover {
+    color: #ff4d4f;
+  }
+}
+
+.registerButton {
+  background-color: #ff4d4f;
+  color: white;
+  
+  &:hover {
+    background-color: #ff7875;
+    color: white;
+  }
+}
+
+.actionText {
+  font-size: 14px;
+}
+
+.mobileMenuButton {
+  display: none;
+}
+
+.mobileDrawerContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileDrawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff4d4f;
+}
+
+.closeButton {
+  color: #999;
+  
+  &:hover {
+    color: #ff4d4f;
+  }
+}
+
+.mobileMenu {
+  flex: 1;
+  overflow: auto;
+  
+  .ant-menu-item {
+    padding: 12px 24px !important;
+    font-size: 16px;
+    
+    &.ant-menu-item-selected {
+      background-color: #fff1f0;
+      color: #ff4d4f;
+    }
+  }
+  
+  .ant-menu-submenu-title {
+    padding: 12px 24px !important;
+    font-size: 16px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .mobileMenuButton {
+    display: block;
+  }
+  
+  .navLinks {
+    display: none;
+  }
+  
+  .searchButton span {
+    display: none;
+  }
+  
+  .actionText {
+    display: none;
+  }
+  
+  .userActions {
+    gap: 10px;
+    margin-left: 15px;
+  }
+  
+  .loginButton,
+  .registerButton {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 20px;
+  }
+  
+  .userActions {
+    gap: 8px;
+  }
+}
+
+// 购物车悬停效果
+.cartButton {
+  position: relative;
+  
+  .ant-badge {
+    transition: all 0.3s;
+  }
+  
+  &:hover .ant-badge {
+    transform: scale(1.1);
+  }
+}
+
+// 动画效果
+.logo {
+  transition: transform 0.3s;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// 滚动时的导航栏样式
+.navbar.scroll {
+  height: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  
+  .container {
+    height: 50px;
+  }
+  
+  .logo {
+    font-size: 20px;
+  }
+}

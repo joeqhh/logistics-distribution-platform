@@ -34,10 +34,7 @@ router.get('/products', merchantProtect, getMerchantProducts)
 router.get('/products/:id', merchantProtect, getProductDetail)
 
 // 更新商品 - 支持单文件和多文件上传
-router.put('/products/:id', merchantProtect, upload.fields([
-  { name: 'cover', maxCount: 1 },
-  { name: 'image', maxCount: 10 }
-]), updateProductHandler)
+router.put('/products/:id', merchantProtect, updateProductHandler)
 
 // 删除商品
 router.delete('/products/single/:id', merchantProtect, deleteProductHandler)
