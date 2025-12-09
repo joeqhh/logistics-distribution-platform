@@ -1,11 +1,53 @@
 .homeContainer {
   padding-bottom: 40px;
-}
 
+  :global(.arco-card-bordered) {
+    border: none;
+  }
+
+}
 
 /* 商品样式 */
 .productsContainer {
   margin-bottom: 40px;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 16px;
+}
+
+// @media (min-width: 576px) {
+//   .productGrid {
+//     grid-template-columns: repeat(2, 1fr);
+//   }
+// }
+
+@media (min-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .productGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .productGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.productGridItem {
+  width: 100%;
+  cursor: pointer;
 }
 
 .sectionHeader {
@@ -27,6 +69,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .productCard:hover {
@@ -34,12 +77,34 @@
 }
 
 .productImage {
-  height: 200px;
+  aspect-ratio: 1/1;
+  width: 100%;
   object-fit: cover;
 }
 
+.productNameWrapper {
+  height: 24px;
+  overflow: hidden;
+}
+
+.productName {
+  width: 100%;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  color: #333;
+  word-break: break-all;
+}
+
 .productPrice {
+  color: #ff5000;
   margin-bottom: 10px;
+  color: #ff5000;
+  font-family: Inter V;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 22px;
 }
 
 .currentPrice {
@@ -151,15 +216,15 @@
   .carouselItem {
     height: 200px;
   }
-  
+
   .categoryGrid {
     grid-template-columns: repeat(4, 1fr);
   }
-  
+
   .categoryIcon {
     font-size: 24px;
   }
-  
+
   .promotionCard {
     margin-bottom: 16px;
   }

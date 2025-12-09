@@ -69,7 +69,7 @@ function PageLayout() {
   const history = useHistory()
   const pathname = history.location.pathname
   const currentComponent = qs.parseUrl(pathname).url.slice(1)
-  const { settings, userLoading, initUserInfo } = useStore()
+  const { settings, userLoading } = useStore()
 
   const [routes, defaultRoute] = useRoute({})
   const defaultSelectedKeys = [currentComponent || defaultRoute]
@@ -190,9 +190,6 @@ function PageLayout() {
     updateMenuStatus()
   }, [pathname])
 
-  useEffect(() => {
-    initUserInfo()
-  }, [])
 
   return (
     <Layout className={styles.layout}>

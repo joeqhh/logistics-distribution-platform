@@ -1,0 +1,34 @@
+.tooltip-info-window {
+  display: inline-block; /* 关键: 宽度随内容自适应 */
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  max-width: 260px; /* 防止过长，可以更大或删除限制 */
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  white-space: nowrap; /* 不换行 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* 超出省略 */
+  font-size: 14px;
+  position: relative; /* 让箭头定位 */
+  font-weight: bold;
+  color: #111;
+}
+
+/* 内容区域（如果你未来想加 padding 或字重可放这里） */
+.tiw-content {
+  display: block;
+}
+
+/* 下方 tooltip 箭头 */
+.tiw-arrow {
+  position: absolute;
+  bottom: -6px; /* 向下突出 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #333; /* 箭头颜色与背景一致 */
+}

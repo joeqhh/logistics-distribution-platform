@@ -25,7 +25,7 @@ router.get('/consumer/addresses', consumerProtect, consumerGetAddresses)
 router.get('/consumer/addresses/:id', consumerProtect, consumerGetAddressById)
 router.put('/consumer/addresses/:id', consumerProtect, consumerUpdateAddress)
 router.delete('/consumer/addresses/:id', consumerProtect, consumerDeleteAddress)
-router.put('/consumer/addresses/:id/default', consumerProtect, consumerSetDefaultAddress)
+// router.put('/consumer/addresses/:id/default', consumerProtect, consumerSetDefaultAddress)
 
 // 商家地址路由 - 需要商家身份验证
 router.post('/merchant/addresses', merchantProtect, merchantCreateAddress)
@@ -33,6 +33,6 @@ router.get('/merchant/addresses', merchantProtect, merchantGetAddresses)
 router.get('/merchant/addresses/:id', merchantProtect, merchantGetAddressById)
 router.put('/merchant/addresses/:id', merchantProtect, merchantUpdateAddress)
 router.delete('/merchant/addresses/:id', merchantProtect, merchantDeleteAddress)
-router.put('/merchant/addresses/:id/default', merchantProtect, merchantSetDefaultAddress)
+// router.put('/merchant/addresses/:id/default', merchantProtect, merchantSetDefaultAddress)
 
 export default router

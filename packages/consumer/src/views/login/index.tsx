@@ -1,126 +1,155 @@
-import React, { useState } from 'react'
-import { Form, Input, Button, Card, Checkbox, Message, Spin } from '@arco-design/web-react'
-import { IconUser, IconLock } from '@arco-design/web-react/icon'
-import { useHistory } from 'react-router-dom'
-import { useAppStore } from '../../store'
+import {
+  Form,
+  Input,
+  Checkbox,
+  Button,
+  Space,
+  Message
+} from '@arco-design/web-react'
+import { IconLock, IconUser } from '@arco-design/web-react/icon'
+import { useEffect, useState } from 'react'
+import useStorage from '@/utils/useStorage'
 import styles from './index.module.less'
+import { consumerLogin } from '@/api'
+import { setToken } from '@/utils/authentication'
+import { useStore } from '@/store'
+import { useLocation } from "react-router-dom";
 
-export default function Login() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string>('')
+export default function LoginForm() {
+
+  const location = useLocation();
+  
+  const appStoreLogin = useStore((state) => state.login)
+
   const [form] = Form.useForm()
-  const history = useHistory()
-  const { login } = useAppStore()
 
-  const onFinish = async (values: { username: string; password: string; remember: boolean }) => {
-    setLoading(true)
-    try {
-      setError('')
-      // 使用全局状态管理中的登录方法
-      await login(values.username, values.password)
-      
-      Message.success('登录成功！')
-      // 登录成功后跳转到首页
-      history.push('/')
-    } catch (err: any) {
-      const errorMessage = err.message || '登录失败，请检查用户名和密码'
-      setError(errorMessage)
-      Message.error(errorMessage)
-    } finally {
-      setLoading(false)
+  const [loading, setLoading] = useState(false)
+  const [loginParams, setLoginParams, removeLoginParams] =
+    useStorage('cloginParams')
+
+  const [rememberPassword, setRememberPassword] = useState(!!loginParams)
+
+  function afterLoginSuccess(params: any, data: any) {
+    // 记住密码
+    if (rememberPassword) {
+      setLoginParams(JSON.stringify(params))
+    } else {
+      removeLoginParams()
     }
+    // 记录登录状态
+    appStoreLogin(data)
+    localStorage.setItem('cStatus', 'login')
+    setToken(data.token)
+
+    const {from} = (location.state as any) || {}
+    
+    // 跳转首页
+    window.location.href = from || '/'
   }
 
+  function login(params: any) {
+    setLoading(true)
+    consumerLogin(params.userName, params.password)
+      .then((res: any) => {
+        const { code, data, msg } = res
+        if (code === 200) {
+          afterLoginSuccess(params, data)
+        } else {
+          Message.error(msg || '登录出错，请刷新重试')
+        }
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  function onSubmitClick() {
+    form
+      ?.validate()
+      .then((values) => {
+        login(values)
+      })
+      .catch((errors) => {
+        console.log('验证失败', errors)
+      })
+  }
+
+  // 读取 localStorage，设置初始值
+  useEffect(() => {
+    const rememberPassword = !!loginParams
+    setRememberPassword(rememberPassword)
+    if (form && rememberPassword) {
+      const parseParams = JSON.parse(loginParams)
+      form.setFieldsValue(parseParams)
+    }
+  }, [loginParams])
+
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginCard}>
-        <Card>
-          <div className={styles.header}>
-            <h1 className={styles.title}>欢迎登录</h1>
-            <p className={styles.subtitle}>物流配送平台</p>
-          </div>
-          
-          {error && (
-            <div className={styles.errorContainer}>
-              <Alert 
-                message="登录失败" 
-                description={error} 
-                type="error" 
-                showIcon 
-              />
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles['content-inner']}>
+          <div className={styles['login-form-wrapper']}>
+            <div className={styles['login-form-title']}>欢迎登录</div>
+            <div className={styles['login-form-sub-title']}>
+              Byte Logistics 用户端
             </div>
-          )}
-          
-          <Form
-            form={form}
-            name="login"
-            onFinish={onFinish}
-            autoComplete="off"
-            size="large"
-            initialValues={{ remember: true }}
-          >
-            <Form.Item
-              name="username"
-              rules={[
-                { required: true, message: '请输入用户名！' },
-                { min: 3, message: '用户名至少3个字符' }
-              ]}
+            <Form
+              onSubmit={onSubmitClick}
+              form={form}
+              className={styles['login-form']}
+              layout="vertical"
             >
-              <Input
-                prefix={<IconUser className={styles.inputPrefix} />}
-                placeholder="用户名"
-                className={styles.input}
-                disabled={loading}
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="password"
-              rules={[
-                { required: true, message: '请输入密码！' },
-                { min: 6, message: '密码至少6个字符' }
-              ]}
-            >
-              <Input.Password
-                prefix={<IconLock className={styles.inputPrefix} />}
-                placeholder="密码"
-                className={styles.input}
-                disabled={loading}
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <div className={styles.rememberSection}>
-                <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <Checkbox disabled={loading}>记住我</Checkbox>
-                </Form.Item>
-                <a href="#" className={styles.forgotLink}>
-                  忘记密码？
-                </a>
-              </div>
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                className={styles.loginButton}
+              <Form.Item
+                field="userName"
+                rules={[{ required: true, message: '账号不能为空' }]}
               >
-                {loading ? <Spin size="small" /> : '登录'}
-              </Button>
-            </Form.Item>
-
-            <div className={styles.registerSection}>
-              <p className={styles.registerText}>
-                还没有账号？
-                <a href="/register" className={styles.registerLink}>
-                  立即注册
-                </a>
-              </p>
-            </div>
-          </Form>
-        </Card>
+                <Input
+                  prefix={<IconUser />}
+                  placeholder="账号"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Form.Item
+                field="password"
+                rules={[{ required: true, message: '密码不能为空' }]}
+              >
+                <Input.Password
+                  prefix={<IconLock />}
+                  placeholder="密码"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Space size={16} direction="vertical">
+                <div className={styles['login-form-password-actions']}>
+                  <Checkbox
+                    checked={rememberPassword}
+                    onChange={setRememberPassword}
+                  >
+                    记住密码
+                  </Checkbox>
+                  {/* <Link>忘记密码</Link> */}
+                </div>
+                <Button
+                  type="primary"
+                  long
+                  onClick={() => form.submit()}
+                  loading={loading}
+                  className={styles['login-button']}
+                >
+                  登录
+                </Button>
+                <div className={styles.registerSection}>
+                  <p className={styles.registerText}>
+                    还没有账号？
+                    <a href="/register" className={styles.registerLink}>
+                      立即注册
+                    </a>
+                  </p>
+                </div>
+              </Space>
+            </Form>
+          </div>
+        </div>
       </div>
     </div>
   )

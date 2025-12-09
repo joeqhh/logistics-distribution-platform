@@ -3,7 +3,7 @@ import { Card, Tabs } from '@arco-design/web-react'
 import UserInfoHeader from './header'
 import InfoForm from './info'
 // import Security from './security';
-import { getMerchantInfo, type MerchantInfo } from '@/api'
+import {  type MerchantInfo } from '@/api'
 import {useStore} from '@/store'
 
 function UserInfo() {

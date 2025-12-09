@@ -1,13 +1,13 @@
 import React from 'react';
 import { Redirect, useLocation } from 'react-router-dom';
-import { useAppStore } from '../../store';
+import { useStore } from '../../store';
 
 // 权限控制Hook
 export const useAuth = () => {
-  const { user, isLogin } = useAppStore();
+  const { userInfo, isLogin } = useStore();
   
   const checkAuth = () => {
-    if (!isLogin || !user) {
+    if (!isLogin || !userInfo) {
       return false;
     }
     return true;
@@ -22,7 +22,7 @@ export const useAuth = () => {
   };
   
   return {
-    user,
+    userInfo,
     isLogin,
     checkAuth,
     requireAuth,
@@ -45,7 +45,7 @@ const ProtectedRouteImpl: React.FC<ProtectedRouteProps> = ({
   
   // 如果未授权，重定向到登录页面，并保存当前路径以便登录后返回
   if (!requireAuth()) {
-    return <Redirect to={{ pathname: fallback, state: { from: location } }} />;
+    return <Redirect to={{ pathname: fallback, state: { from: location.pathname } }} />;
   }
   
   return <>{children}</>;
@@ -62,7 +62,7 @@ export const WithAuthCheck = (
   fn: () => any,
   fallbackAction?: () => void
 ) => {
-  const { isLogin } = useAppStore();
+  const { isLogin } = useStore();
   
   return () => {
     if (!isLogin) {

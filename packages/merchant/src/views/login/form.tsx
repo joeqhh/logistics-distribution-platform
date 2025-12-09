@@ -2,27 +2,27 @@ import {
   Form,
   Input,
   Checkbox,
-  Link,
   Button,
-  Space
+  Space,
+  Message
 } from '@arco-design/web-react'
-import { FormInstance } from '@arco-design/web-react/es/Form'
 import { IconLock, IconUser } from '@arco-design/web-react/icon'
-import React, { useEffect, useRef, useState } from 'react'
-import axios from 'axios'
+import { useEffect, useState } from 'react'
 import useStorage from '@/utils/useStorage'
 import styles from './style/index.module.less'
+import { merchantLogin } from '@/api'
+import { setToken } from '@/utils/authentication'
 
 export default function LoginForm() {
-  const formRef = useRef<FormInstance>()
-  const [errorMessage, setErrorMessage] = useState('')
+  const [form] = Form.useForm()
+
   const [loading, setLoading] = useState(false)
   const [loginParams, setLoginParams, removeLoginParams] =
     useStorage('loginParams')
 
   const [rememberPassword, setRememberPassword] = useState(!!loginParams)
 
-  function afterLoginSuccess(params: any) {
+  function afterLoginSuccess(params: any, data: any) {
     // 记住密码
     if (rememberPassword) {
       setLoginParams(JSON.stringify(params))
@@ -30,22 +30,21 @@ export default function LoginForm() {
       removeLoginParams()
     }
     // 记录登录状态
-    localStorage.setItem('userStatus', 'login')
+    localStorage.setItem('mStatus', 'login')
+    setToken(data.token)
     // 跳转首页
     window.location.href = '/'
   }
 
   function login(params: any) {
-    setErrorMessage('')
     setLoading(true)
-    axios
-      .post('/api/user/login', params)
-      .then((res) => {
-        const { status, msg } = res.data
-        if (status === 'ok') {
-          afterLoginSuccess(params)
+    merchantLogin(params.userName, params.password)
+      .then((res: any) => {
+        const { code, data, msg } = res
+        if (code === 200) {
+          afterLoginSuccess(params, data)
         } else {
-          setErrorMessage(msg || '登录出错，请刷新重试')
+          Message.error(msg || '登录出错，请刷新重试')
         }
       })
       .finally(() => {
@@ -54,31 +53,37 @@ export default function LoginForm() {
   }
 
   function onSubmitClick() {
-    formRef.current?.validate().then((values) => {
-      login(values)
-    })
+    form
+      ?.validate()
+      .then((values) => {
+        login(values)
+      })
+      .catch((errors) => {
+        console.log('验证失败', errors)
+      })
   }
 
   // 读取 localStorage，设置初始值
   useEffect(() => {
     const rememberPassword = !!loginParams
     setRememberPassword(rememberPassword)
-    if (formRef.current && rememberPassword) {
+    if (form && rememberPassword) {
       const parseParams = JSON.parse(loginParams)
-      formRef.current.setFieldsValue(parseParams)
+      form.setFieldsValue(parseParams)
     }
   }, [loginParams])
 
   return (
     <div className={styles['login-form-wrapper']}>
-      <div className={styles['login-form-title']}>登录 Arco Design Pro</div>
-      <div className={styles['login-form-sub-title']}>登录 Arco Design Pro</div>
-      <div className={styles['login-form-error-msg']}>{errorMessage}</div>
+      <div className={styles['login-form-title']}>欢迎登录</div>
+      <div className={styles['login-form-sub-title']}>
+        Byte Logistics 商家端
+      </div>
       <Form
+        onSubmit={onSubmitClick}
+        form={form}
         className={styles['login-form']}
         layout="vertical"
-        // ref={formRef}
-        initialValues={{ userName: 'admin', password: 'admin' }}
       >
         <Form.Item
           field="userName"
@@ -86,7 +91,7 @@ export default function LoginForm() {
         >
           <Input
             prefix={<IconUser />}
-            placeholder="用户名：admin"
+            placeholder="账号"
             onPressEnter={onSubmitClick}
           />
         </Form.Item>
@@ -96,7 +101,7 @@ export default function LoginForm() {
         >
           <Input.Password
             prefix={<IconLock />}
-            placeholder="密码：admin"
+            placeholder="密码"
             onPressEnter={onSubmitClick}
           />
         </Form.Item>
@@ -105,18 +110,33 @@ export default function LoginForm() {
             <Checkbox checked={rememberPassword} onChange={setRememberPassword}>
               记住密码
             </Checkbox>
-            <Link>忘记密码</Link>
+            {/* <Link>忘记密码</Link> */}
           </div>
-          <Button type="primary" long onClick={onSubmitClick} loading={loading}>
+          <Button
+            type="primary"
+            long
+            onClick={() => form.submit()}
+            loading={loading}
+            className={styles['login-button']}
+          >
             登录
           </Button>
-          <Button
+          {/* <Button
             type="text"
             long
             className={styles['login-form-register-btn']}
+            onClick={() => (window.location.href = '/register')}
           >
             注册账号
-          </Button>
+          </Button> */}
+          <div className={styles.registerSection}>
+            <p className={styles.registerText}>
+              还没有账号？
+              <a href="/register" className={styles.registerLink}>
+                立即注册
+              </a>
+            </p>
+          </div>
         </Space>
       </Form>
     </div>

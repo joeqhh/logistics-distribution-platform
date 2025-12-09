@@ -1,0 +1,359 @@
+.productDetailContainer {
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+/* 天猫风格容器 */
+.tmallStyleContainer {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 商品图片区域 */
+.productImageSection {
+    width: 50%;
+    min-height: 500px;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #f8f9fa;
+  }
+
+.carouselContainer {
+    display: flex;
+    height: 100%;
+    align-items: center;
+  }
+
+  /* 垂直小图预览 */
+  .thumbnailList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-right: 16px;
+    padding: 8px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .thumbnailItem {
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: #ff5000;
+      box-shadow: 0 2px 8px rgba(255, 80, 0, 0.2);
+    }
+  }
+
+  .activeThumbnail {
+    border-color: #ff5000;
+    box-shadow: 0 2px 8px rgba(255, 80, 0, 0.2);
+  }
+
+  .thumbnailImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* 主轮播图 */
+  .productCarousel {
+    flex: 1;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .carouselItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+  }
+
+  .productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+/* 商品信息区域 */
+.productInfoSection {
+  width: 50%;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.productInfoInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 商品名称 */
+.productNameContainer {
+  margin-bottom: 20px;
+}
+
+.productName {
+  margin-bottom: 0;
+  font-weight: 500;
+  color: #333;
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+/* 价格区域 */
+.priceContainer {
+  margin-bottom: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.priceMain {
+  display: flex;
+  align-items: baseline;
+}
+
+.pricePrefix {
+  font-size: 16px;
+  color: #ff5000;
+  margin-right: 4px;
+}
+
+.currentPrice {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ff5000;
+}
+
+/* 商品信息行 */
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 0;
+}
+
+.infoLabel {
+  width: 60px;
+  color: #868e96;
+  font-size: 14px;
+}
+
+.infoValue {
+  flex: 1;
+  color: #333;
+  font-size: 14px;
+}
+
+/* 数量选择 */
+.quantityContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 0;
+}
+
+.quantityLabel {
+  width: 60px;
+  color: #868e96;
+  font-size: 14px;
+}
+
+.quantityControl {
+  width: 150px;
+}
+
+.quantityInput {
+  width: 100%;
+  border-radius: 4px;
+}
+
+/* 操作按钮 */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.addToCartButton {
+  height: 52px;
+  font-size: 18px;
+  background-color: #fff;
+  color: #ff5000;
+  border-color: #ff5000;
+  border-radius: 4px;
+  &:hover {
+    background-color: #fff2e8;
+    color: #ff5000;
+    border-color: #ff5000;
+  }
+}
+
+.buyNowButton {
+  height: 52px;
+  font-size: 18px;
+  background-color: #ff5000;
+  border-color: #ff5000;
+  border-radius: 4px;
+  &:hover {
+    background-color: #ff6a39;
+    border-color: #ff6a39;
+  }
+}
+
+/* 收藏按钮 */
+.favoriteButtonContainer {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.favoriteButton {
+  color: #868e96;
+  font-size: 14px;
+  &:hover {
+    color: #ff5000;
+  }
+}
+
+/* 商品详情标签页 */
+.productTabsContainer {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.tabsHeader {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tabItem {
+  padding: 16px 24px;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  &:hover {
+    color: #ff5000;
+  }
+}
+
+.activeTab {
+  color: #ff5000;
+  border-bottom: 2px solid #ff5000;
+  font-weight: 500;
+}
+
+.tabContent {
+  padding: 24px 40px;
+  min-height: 300px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .tmallStyleContainer {
+      flex-direction: column;
+    }
+    
+    .productImageSection,
+    .productInfoSection {
+      width: 100%;
+    }
+    
+    .productImageSection {
+      min-height: 300px;
+      padding: 16px;
+    }
+    
+    .carouselContainer {
+      flex-direction: column-reverse;
+    }
+    
+    .thumbnailList {
+      flex-direction: row;
+      margin-right: 0;
+      margin-top: 12px;
+      width: 100%;
+      overflow-x: auto;
+      justify-content: center;
+    }
+    
+    .thumbnailItem {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+    
+    .productCarousel {
+      aspect-ratio: 1 / 1;
+    }
+    
+    .carouselItem {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .productInfoSection {
+      padding: 16px;
+    }
+    
+    .productName {
+      font-size: 18px;
+    }
+    
+    .currentPrice {
+      font-size: 24px;
+    }
+    
+    .actionButtons {
+      margin-top: 24px;
+    }
+    
+    .addToCartButton,
+    .buyNowButton {
+      height: 48px;
+      font-size: 16px;
+    }
+    
+    .tabsHeader {
+      flex-direction: column;
+    }
+    
+    .tabItem {
+      text-align: center;
+    }
+    
+    .tabContent {
+      padding: 20px;
+    }
+  }

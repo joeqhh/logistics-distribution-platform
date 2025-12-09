@@ -1,157 +1,153 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Alert, Spin, Message } from '@arco-design/web-react';
-import { IconUser, IconLock, IconMail, IconPhone } from '@arco-design/web-react/icon';
-import { useHistory } from 'react-router-dom';
-import styles from './index.module.less';
+import { Form, Input, Button, Link, Message } from '@arco-design/web-react'
+import {
+  IconUser,
+  IconUser as IconName,
+  IconLock
+} from '@arco-design/web-react/icon'
+import React, { useState } from 'react'
+import styles from './index.module.less'
+import { consumerRegister } from '@/api'
 
-const { Title } = Typography;
-const { TextArea } = Input;
+export default function RegisterForm() {
+  const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false)
 
-const Register: React.FC = () => {
-  const history = useHistory();
-  const [form] = Form.useForm();
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  function register(params: any) {
+    setLoading(true)
+    consumerRegister(params.name, params.account, params.password)
+      .then((res: any) => {
+        const { code, msg } = res
+        if (code === 200) {
+          // 注册成功
+          Message.success('注册成功，请登录')
+          window.location.href = '/login'
+        } else {
+          Message.error(msg || '注册失败，请重试')
+        }
+      })
+      .catch(() => {
+        Message.error('注册失败，请重试')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
 
-  const onFinish = async (values: any) => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      // 这里应该添加实际的注册逻辑
-      console.log('Received values of form: ', values);
-      
-      // 模拟注册成功
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      Message.success('注册成功，请登录');
-      history.push('/login');
-    } catch (err: any) {
-      setError(err.message || '注册失败，请稍后重试');
-      Message.error(err.message || '注册失败');
-    } finally {
-      setLoading(false);
+  // 密码确认验证规则
+  const validatePasswordConfirm = (value: string | undefined, cb: any) => {
+    if (value !== form.getFieldValue('password')) {
+      return cb('两次输入的密码不一致')
     }
-  };
+    return cb()
+  }
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
-  };
+  function onSubmitClick() {
+    form
+      ?.validate()
+      .then((values) => {
+        register(values)
+      })
+      .catch((errors) => {
+        console.log('验证失败', errors)
+      })
+  }
 
   return (
     <div className={styles.container}>
-      <Card className={styles.card}>
-        <div className={styles.header}>
-          <Title level={3} className={styles.title}>用户注册</Title>
-        </div>
-        {error && <Alert message="注册失败" description={error} type="error" showIcon className={styles.error} />}
-        <Form
-          form={form}
-          name="register"
-          className={styles.form}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
-          autoComplete="off"
-        >
-          <Form.Item
-            name="username"
-            rules={[
-              { required: true, message: '请输入用户名!' },
-              { min: 3, max: 20, message: '用户名长度需要在3-20个字符之间' }
-            ]}
-          >
-            <Input
-                  prefix={<IconUser />}
-                  placeholder="用户名"
-                  disabled={loading}
-                />
-          </Form.Item>
-          
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: '请输入邮箱!' },
-              { type: 'email', message: '邮箱格式不正确!' }
-            ]}
-          >
-            <Input
-                  prefix={<IconMail />}
-                  placeholder="邮箱"
-                  disabled={loading}
-                />
-          </Form.Item>
-          
-          <Form.Item
-            name="phone"
-            rules={[
-              { required: true, message: '请输入手机号!' },
-              { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确!' }
-            ]}
-          >
-            <Input
-                  prefix={<IconPhone />}
-                  placeholder="手机号"
-                  disabled={loading}
-                />
-          </Form.Item>
-          
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: '请输入密码!' },
-              { min: 6, message: '密码长度至少6位' },
-              { pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/, message: '密码必须包含字母和数字' }
-            ]}
-          >
-            <Input
-                  prefix={<IconLock />}
-                  type="password"
-                  placeholder="密码"
-                  disabled={loading}
-                />
-          </Form.Item>
-          
-          <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            rules={[
-              { required: true, message: '请确认密码!' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('两次输入的密码不一致!'));
-                },
-              }),
-            ]}
-          >
-            <Input
-                  prefix={<IconLock />}
-                  type="password"
-                  placeholder="确认密码"
-                  disabled={loading}
-                />
-          </Form.Item>
-
-          <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              className={styles.submit} 
-              block
-              loading={loading}
+      <div className={styles.content}>
+        <div className={styles['content-inner']}>
+          <div className={styles['register-form-wrapper']}>
+            <div className={styles['register-form-title']}>欢迎注册</div>
+            <div className={styles['register-form-sub-title']}>
+              Byte Logistics 用户端
+            </div>
+            <Form
+              onSubmit={onSubmitClick}
+              form={form}
+              className={styles['register-form']}
+              layout="vertical"
+              initialValues={{
+                account: '',
+                name: '',
+                password: '',
+                confirmPassword: ''
+              }}
             >
-              {loading ? <Spin size="small" /> : '注册'}
-            </Button>
-          </Form.Item>
-          
-          <div className={styles.login}>
-            已有账号? <a href="/login">立即登录</a>
+              <Form.Item
+                field="account"
+                rules={[{ required: true, message: '账号不能为空' }]}
+              >
+                <Input
+                  prefix={<IconUser />}
+                  placeholder="请输入账号"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Form.Item
+                field="name"
+                rules={[{ required: true, message: '用户名不能为空' }]}
+              >
+                <Input
+                  prefix={<IconName />}
+                  placeholder="请输入用户名"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Form.Item
+                field="password"
+                rules={[
+                  { required: true, message: '密码不能为空' },
+                  { min: 6, message: '密码长度不能少于6位' }
+                ]}
+              >
+                <Input
+                  prefix={<IconLock />}
+                  type="password"
+                  placeholder="请输入密码"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Form.Item
+                field="confirmPassword"
+                rules={[
+                  { required: true, message: '确认密码不能为空' },
+                  {
+                    validator: validatePasswordConfirm,
+                    message: '两次输入的密码不一致'
+                  }
+                ]}
+              >
+                <Input
+                  prefix={<IconLock />}
+                  type="password"
+                  placeholder="请确认密码"
+                  onPressEnter={onSubmitClick}
+                />
+              </Form.Item>
+              <Button
+                type="primary"
+                long
+                onClick={() => form.submit()}
+                loading={loading}
+                className={styles['register-button']}
+              >
+                注册
+              </Button>
+              <div className={styles.loginSection}>
+                <p className={styles.loginText}>
+                  已有账号？
+                  <a href="/login" className={styles.loginLink}>
+                    立即登录
+                  </a>
+                </p>
+              </div>
+              {/* <div className={styles['register-form-actions']}>
+          <Link href="/login">已有账号？立即登录</Link>
+        </div> */}
+            </Form>
           </div>
-        </Form>
-      </Card>
+        </div>
+      </div>
     </div>
-  );
-};
-
-export default Register;
+  )
+}

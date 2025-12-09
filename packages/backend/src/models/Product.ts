@@ -68,8 +68,8 @@ export const findProductsByMerchantId = async (
   priceEnd?: number,
   salesBegin?: number,
   salesEnd?: number,
-  createTimeBegin?: Date,
-  createTimeEnd?: Date
+  createTimeBegin?: string,
+  createTimeEnd?: string
 ): Promise<{ products: Product[]; total: number }> => {
   const skip = (page - 1) * limit
   const whereCondition = {
@@ -82,8 +82,12 @@ export const findProductsByMerchantId = async (
     ...(priceEnd ? { price: { lte: priceEnd } } : {}),
     ...(salesBegin ? { sales: { gte: Number(salesBegin) } } : {}),
     ...(salesEnd ? { sales: { lte: Number(salesEnd) } } : {}),
-    ...(createTimeBegin ? { createTime: { gte: createTimeBegin } } : {}),
-    ...(createTimeEnd ? { createTime: { lte: createTimeEnd } } : {})
+    ...((createTimeBegin || createTimeEnd) ? {
+      createTime: {
+        ...(createTimeBegin ? { gte: new Date(createTimeBegin) } : {}),
+        ...(createTimeEnd ? { lte: new Date(createTimeEnd + ' 23:59:59') } : {})
+      }
+    } : {})
   }
 
   const [products, total] = await Promise.all([

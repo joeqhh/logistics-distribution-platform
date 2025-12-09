@@ -1,134 +1,60 @@
-import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { Menu, Dropdown, Badge, Button, Drawer } from '@arco-design/web-react';
-import { IconShoppingCart, IconUser, IconMenu, IconClose, IconHome, IconTag, IconSearch } from '@arco-design/web-react/icon';
-import { useAppStore } from '../../store';
-import styles from './index.module.less';
+import { Menu, Avatar, Dropdown, Button } from '@arco-design/web-react'
+import { IconPoweroff } from '@arco-design/web-react/icon'
+import { Link, useHistory } from 'react-router-dom'
+import { useStore } from '@/store'
+import styles from './index.module.less'
 
-const Navbar: React.FC = () => {
-  const { user, isAuthenticated, logout, cartItems } = useAppStore();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const history = useHistory();
+export default function Navbar() {
+  const isLogin = useStore((state) => state.isLogin)
+  const logout = useStore((state) => state.logout)
+  const userInfo = useStore((state) => state.userInfo)
 
-  // 计算购物车商品总数
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const history = useHistory()
 
-  // 用户菜单选项
-  const userMenuItems = [
-    { key: '1', label: <Link to="/user-profile">个人中心</Link> },
-    { key: '2', label: <Link to="/address-management">地址管理</Link> },
-    { key: '3', label: <Link to="/user/orders">我的订单</Link> },
-    { key: '4', label: '退出登录', danger: true, onClick: () => {
-      logout();
-      history.push('/');
-    }},
-  ];
-
-  // 移动端菜单选项
-  const mobileMenuItems = [
-    { key: 'home', icon: <HomeOutlined />, label: <Link to="/">首页</Link> },
-    { key: 'products', icon: <TagOutlined />, label: <Link to="/products">商品分类</Link> },
-    { key: 'cart', icon: <ShoppingCartOutlined />, label: <Link to="/cart">购物车</Link> },
-    ...(isAuthenticated ? userMenuItems : [
-      { key: 'login', label: <Link to="/login">登录</Link> },
-    { key: 'register', label: <Link to="/register">注册</Link> },
-    ]),
-  ];
-
-  const userMenu = (
-    <Menu items={userMenuItems} />
-  );
-
-  const handleSearchClick = () => {
-    navigate('/products');
-  };
+  function onMenuItemClick(key: string) {
+    if (key === 'logout') {
+      logout()
+    }
+  }
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.container}>
-        {/* 移动端菜单按钮 */}
-        <Button 
-          type="text" 
-          className={styles.mobileMenuButton} 
-          icon={<MenuOutlined />}
-          onClick={() => setIsMobileMenuOpen(true)}
-        />
-
-        {/* Logo */}
-        <Link to="/" className={styles.logo}>
-          仿淘宝商城
-        </Link>
-
-        {/* 桌面端导航链接 */}
-        <div className={styles.navLinks}>
-          <Link to="/" className={styles.navLink}>首页</Link>
-          <Link to="/products" className={styles.navLink}>商品分类</Link>
-        </div>
-
-        {/* 搜索按钮 */}
-        <div className={styles.searchButton} onClick={handleSearchClick}>
-          <SearchOutlined />
-          <span>搜索商品</span>
-        </div>
-
-        {/* 用户操作区 */}
-        <div className={styles.userActions}>
-          {/* 购物车 */}
-          <Link to="/cart" className={styles.cartButton}>
-            <Badge count={cartItemCount} showZero>
-              <IconShoppingCart />
-            </Badge>
-            <span className={styles.actionText}>购物车</span>
+    <>
+      <div className={styles.headerContent}>
+        <div className={styles.logo}>
+          <Link to="/">
+            <img src="/logo.png" alt="Logo" className={styles.logoText} />
           </Link>
-
-          {/* 用户菜单 */}
-          {isAuthenticated ? (
-            <Dropdown overlay={userMenu} trigger={['click']}>
-              <Button type="text" icon={<IconUser />}>
-                {user?.username || '用户'}
-              </Button>
+        </div>
+        <div className={styles.userContainer}>
+          <Button type="text" onClick={() => history.push('/user')}>我的订单</Button>
+          {isLogin ? (
+            <Dropdown
+              droplist={
+                <Menu onClickMenuItem={onMenuItemClick}>
+                  <Menu.Item key="logout">
+                    <IconPoweroff className={styles['dropdown-icon']} />
+                    退出登录
+                  </Menu.Item>
+                </Menu>
+              }
+              position="br"
+            >
+              <Avatar size={32} style={{ cursor: 'pointer' }}>
+                <img
+                  alt="avatar"
+                  src={
+                    userInfo?.avatar ? `/object/${userInfo?.avatar}` : undefined
+                  }
+                />
+              </Avatar>
             </Dropdown>
           ) : (
-            <>
-              <Link to="/login" className={styles.loginButton}>
-                登录
-              </Link>
-              <Link to="/register" className={styles.registerButton}>
-                注册
-              </Link>
-            </>
+            <Link to="/login" className={styles.loginButton}>
+              <Button type="text">登录/注册</Button>
+            </Link>
           )}
         </div>
       </div>
-
-      {/* 移动端侧边菜单 */}
-      <Drawer
-      title="菜单"
-      placement="left"
-      onCancel={() => setIsMobileMenuOpen(false)}
-      open={isMobileMenuOpen}
-      className={styles.mobileDrawer}
-      drawerStyle={{ padding: 0, width: '80%', maxWidth: '300px' }}
-    >
-        <div className={styles.mobileDrawerContent}>
-          <div className={styles.mobileDrawerHeader}>
-            <span>仿淘宝商城</span>
-            <Button 
-              type="text" 
-              icon={<CloseOutlined />}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={styles.closeButton}
-            />
-          </div>
-          <Menu
-            mode="vertical"
-            items={mobileMenuItems}
-            className={styles.mobileMenu}
-          />
-        </div>
-      </Drawer>
-    </nav>
-  );
-};
-
-export default Navbar;
+    </>
+  )
+}

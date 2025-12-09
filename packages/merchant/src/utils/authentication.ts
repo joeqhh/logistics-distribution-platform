@@ -3,7 +3,7 @@
  */
 
 // Token管理相关函数
-const TOKEN_KEY = 'merchant_token';
+const TOKEN_KEY = 't';
 
 /**
  * 获取认证token

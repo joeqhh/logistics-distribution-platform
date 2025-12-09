@@ -50,3 +50,27 @@ export const updateMerchantInfo = async (formData: FormData) => {
     }
   })
 }
+
+
+
+/**
+ * 商家登录
+ * @param account 
+ * @param password 
+ * @returns 
+ */
+export const merchantLogin = async (account: string,password:string) => {
+  return axiosInstance.post('/auth/merchant/login', { account, password })
+}
+
+
+/**
+ * 商家注册
+ * @param name 
+ * @param account 
+ * @param password 
+ * @returns 
+ */
+export const merchantRegister = async (name: string, account: string,password:string) => {
+  return axiosInstance.post('/auth/merchant/register', { name, account, password })
+}

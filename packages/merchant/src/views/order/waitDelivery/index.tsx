@@ -164,8 +164,10 @@ export default function WaitDelivery() {
 
   const handleGetMerchantOrders = (query: OrderQueryParams) => {
     setLoading(true)
-    getMerchantOrders(query)
+    getMerchantOrders({page: pagination.current,limit:pagination.pageSize,...query})
       .then((res) => {
+        console.log(res);
+        
         const { orders, total } = res.data!
         setOrders(orders)
         setPagination((pagination) => ({ ...pagination, total }))
@@ -191,7 +193,9 @@ export default function WaitDelivery() {
       status: 'WAITDELIVER',
       page: current,
       limit: pageSize,
-      ...values
+      ...values,
+      createTimeBegin: values.createTimeRange[0] || undefined,
+      createTimeEnd: values.createTimeRange[1] || undefined,
     })
   }
 

@@ -41,24 +41,24 @@ const routes = [
   {
     path: '/product/:id',
     lazy: () =>
-      import('@/views/product-detail').then((module) => {
+      import('@/views/productDetail').then((module) => {
         return { Component: module.default }
       })
   },
-  // {
-  //   path: '/user/profile',
-  //   lazy: () =>
-  //     import('@/views/user/profile').then((module) => {
-  //       return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
-  //     })
-  // },
-  // {
-  //   path: '/user/address',
-  //   lazy: () =>
-  //     import('@/views/user/address').then((module) => {
-  //       return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
-  //     })
-  // },
+  {
+    path: '/user/profile',
+    lazy: () =>
+      import('@/views/user/profile').then((module) => {
+        return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
+      })
+  },
+  {
+    path: '/user/address',
+    lazy: () =>
+      import('@/views/user/address').then((module) => {
+        return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
+      })
+  },
   {
     path: '/user-profile',
     lazy: () =>
@@ -66,20 +66,20 @@ const routes = [
         return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
       })
   },
-  {
-    path: '/address-management',
-    lazy: () =>
-      import('@/views/address-management').then((module) => {
-        return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
-      })
-  },
   // {
-  //   path: '/user/orders',
+  //   path: '/address-management',
   //   lazy: () =>
-  //     import('@/views/user/orders').then((module) => {
+  //     import('@/views/address-management').then((module) => {
   //       return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
   //     })
   // },
+  {
+    path: '/user/orders',
+    lazy: () =>
+      import('@/views/user/orders').then((module) => {
+        return { Component: (props) => <ProtectedRoute><module.default {...props} /></ProtectedRoute> }
+      })
+  },
   // 404页面
   {
     path: '*',

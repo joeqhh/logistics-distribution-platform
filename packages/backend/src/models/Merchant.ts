@@ -62,6 +62,25 @@ export const findMerchantByAccount = async (account: string): Promise<Merchant |
   })
 }
 
+
+// 根据账号查找商家
+export const findMerchantByName = async (name: string): Promise<Merchant | null> => {
+  return await prisma.merchant.findFirst({
+    where: { name, isDeleted: false },
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      deliveryArea: true,
+      account: true,
+      password: true,
+      isDeleted: true,
+      createTime: true,
+      updateTime: true
+    }
+  })
+}
+
 // 创建新商家
 export const createMerchant = async (merchantData: CreateMerchantData): Promise<Merchant> => {
   return await prisma.merchant.create({

@@ -119,8 +119,8 @@ export const getMerchantProducts = async (req: AuthRequest, res: Response) => {
       priceEnd as number | undefined,
       salesBegin as number | undefined,
       salesEnd as number | undefined,
-      createTimeBegin ? new Date(createTimeBegin as string) : undefined,
-      createTimeEnd ? new Date(createTimeEnd as string) : undefined
+      createTimeBegin as string || undefined,
+      createTimeEnd as string ||  undefined
     )
     return successResponse(
       res,
@@ -266,7 +266,7 @@ const getGeocode = async (address: string): Promise<string> => {
 // 下单方法
 export const placeOrderHandler = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, receiveAddressId } = req.body
+    const { productId, receiveAddressId,productNum } = req.body
 
     if (!productId || !receiveAddressId) {
       return badRequestResponse(res, '缺少必要参数')
@@ -320,7 +320,7 @@ export const placeOrderHandler = async (req: AuthRequest, res: Response) => {
     const newLogistics = await createLogistics(logisticsData)
 
     // 更新商品销量
-    await updateProductSales(productId)
+    await updateProductSales(productId,Number(productNum))
 
     return successResponse(res, null, '下单成功')
   } catch (error) {

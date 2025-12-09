@@ -81,6 +81,60 @@ export const findLogisticsByOrderId = async (orderId: string): Promise<Logistics
   })
 }
 
+// 获取订单预计送达时间（status为WAITRECEIVE的createTime）
+export const findExpectDeliveredTimeByOrderId = async (orderId: string): Promise<Date | null> => {
+  const waitReceiveLogistics = await prisma.logistics.findFirst({
+    where: {
+      orderId,
+      isDeleted: false,
+      status: LogisticsStatus.WAITRECEIVE
+    },
+    select: { createTime: true }
+  })
+  
+  return waitReceiveLogistics?.createTime || null
+}
+
+// 获取所有createTime大于当前时间的物流数据
+export const findFutureLogistics = async (orderId?: string): Promise<Logistics[]> => {
+  return await prisma.logistics.findMany({
+    where: {
+      isDeleted: false,
+      createTime: { gt: new Date() },
+      ...(orderId ? {orderId} : {})
+    },
+    orderBy: { createTime: 'asc' },
+    select: {
+      id: true,
+      orderId: true,
+      status: true,
+      describe: true,
+      location: true,
+      isDeleted: true,
+      createTime: true,
+    }
+  })
+}
+
+// 获取所有物流数据（包括历史和未来的）
+export const findAllLogistics = async (time?: Date): Promise<Logistics[]> => {
+  return await prisma.logistics.findMany({
+    where: {
+      isDeleted: false
+    },
+    orderBy: { createTime: 'asc' },
+    select: {
+      id: true,
+      orderId: true,
+      status: true,
+      describe: true,
+      location: true,
+      isDeleted: true,
+      createTime: true,
+    }
+  })
+}
+
 // 创建新物流信息
 export const createLogistics = async (logisticsData: CreateLogisticsData): Promise<Logistics> => {
   return await prisma.logistics.create({

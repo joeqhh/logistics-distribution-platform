@@ -1,92 +1,63 @@
 import { create } from 'zustand'
+import defaultSettings from '@/settings.json'
+import { type ConsumerInfo, consumerProfile } from '@/api'
 import { persist } from 'zustand/middleware'
-import {type Product} from '@/api'
+import {removeToken} from '@/utils/authentication'
 
-interface User {
-  id: string
-  username: string
-  email?: string
-  phone?: string
-}
-
-interface Address {
-  id: string
-  name: string
-  phone: string
-  province: string
-  city: string
-  district: string
-  detail: string
-  isDefault: boolean
-}
-
-
-interface AppState {
-  // 用户状态
+export interface GlobalState {
   isLogin: boolean
-  user: User | null
-  login: (user: User) => void
-  logout: () => void
-  updateUser: (user: Partial<User>) => void
-  
-  // 地址管理
-  addresses: Address[]
-  addAddress: (address: Omit<Address, 'id'>) => void
-  updateAddress: (id: string, address: Partial<Address>) => void
-  deleteAddress: (id: string) => void
-  setDefaultAddress: (id: string) => void
-  
+  login: (user: ConsumerInfo) => void
+    logout: () => void
+  settings?: typeof defaultSettings
+  userInfo?: ConsumerInfo
+  userLoading?: boolean
+  updateSettings: (settings: typeof defaultSettings) => void
+  updateUserInfo: (
+    userInfo?: GlobalState['userInfo'],
+    userLoading?: boolean
+  ) => void
+  initUserInfo: () => Promise<any>
 }
 
-export const useAppStore = create<AppState>()(
+const initialUserInfo: ConsumerInfo = {
+  id: -1,
+  account: '',
+  name: '',
+  avatar: ''
+}
+
+export const useStore = create<GlobalState>()(
   persist(
     (set, get) => ({
-      // 用户状态
       isLogin: false,
-      user: null,
-      login: (user: User) => set({ isLogin: true, user }),
-      logout: () => set({ isLogin: false, user: null }),
-      updateUser: (userData: Partial<User>) => 
-        set((state) => ({
-          user: state.user ? { ...state.user, ...userData } : null
-        })),
-      
-      // 地址管理
-      addresses: [],
-      addAddress: (address: Omit<Address, 'id'>) => 
-        set((state) => {
-          const newAddress = {
-            ...address,
-            id: Date.now().toString()
-          }
-          return {
-            addresses: state.addresses.concat(newAddress)
-          }
-        }),
-      updateAddress: (id: string, addressData: Partial<Address>) =>
-        set((state) => ({
-          addresses: state.addresses.map(addr => 
-            addr.id === id ? { ...addr, ...addressData } : addr
-          )
-        })),
-      deleteAddress: (id: string) =>
-        set((state) => ({
-          addresses: state.addresses.filter(addr => addr.id !== id)
-        })),
-      setDefaultAddress: (id: string) =>
-        set((state) => ({
-          addresses: state.addresses.map(addr => ({
-            ...addr,
-            isDefault: addr.id === id
-          }))
-        })),
+      settings: defaultSettings,
+      userInfo: initialUserInfo,
+      userLoading: false,
+      login: (userInfo: ConsumerInfo) => set({ isLogin: true, userInfo }),
+      logout: () => {
+        set({ isLogin: false, userInfo: undefined })
+        // localStorage.setItem('cStatus', 'logout')
+        removeToken()
+        // window.location.href = '/login'
+      },
+      updateSettings: (settings) => set({ settings }),
+      updateUserInfo: (userInfo = initialUserInfo, userLoading) =>
+        set({ userInfo, userLoading }),
+      initUserInfo: async () => {
+        if(!get().isLogin) return
+        const userInfo = get().userInfo
+        if (!userInfo || userInfo.id === -1) {
+          const res = await consumerProfile()
+          const userInfo = res.data
+          set({ userInfo })
+        }
+      }
     }),
     {
-      name: 'logistics-mall-storage',
+      name: 'logistics-consumer',
       partialize: (state) => ({
         isLogin: state.isLogin,
-        user: state.user,
-        addresses: state.addresses,
+        userInfo: state.userInfo
       })
     }
   )

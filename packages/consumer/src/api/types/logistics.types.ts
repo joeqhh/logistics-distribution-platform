@@ -1,0 +1,1 @@
+export type { Logistics } from '@logistics-distribution-platform/backend/src/models/logistics'

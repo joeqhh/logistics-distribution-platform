@@ -1,10 +1,13 @@
 import express,{type Express} from 'express'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import dotenv from 'dotenv'
 import multer from 'multer'
 import authRoutes from './routes/auth'
 import productRoutes from './routes/product'
 import addressRoutes from './routes/address'
 import merchantRoutes from './routes/merchant'
+import consumerRoutes from "./routes/consumer"
 import orderRoutes from './routes/order'
 import { errorHandler } from './middleware/errorHandler'
 
@@ -13,6 +16,13 @@ dotenv.config()
 
 const app: Express = express()
 const PORT = process.env.PORT || 3001
+const httpServer = createServer(app)
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://localhost:5174'], // consumer和merchant的前端地址
+    methods: ['GET', 'POST']
+  }
+})
 
 // 中间件
 app.use(express.json())
@@ -30,6 +40,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api', productRoutes)
 app.use('/api', addressRoutes)
 app.use('/api', merchantRoutes)
+app.use('/api', consumerRoutes)
 app.use('/api/order', orderRoutes)
 
 // 健康检查路由
@@ -55,13 +66,17 @@ app.use(errorHandler)
 // 启动服务器
 const startServer = async () => {
   try {
-
     // 启动服务器
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`服务器运行在端口 ${PORT}`)
       console.log(`健康检查: http://localhost:${PORT}/health`)
       console.log(`认证路由: http://localhost:${PORT}/api/auth`)
+      console.log(`WebSocket服务已启动`)
     })
+
+    // 启动物流坐标WebSocket推送服务
+    const { startLogisticsWebSocketService } = await import('./websocket/logisticsSocket')
+    startLogisticsWebSocketService()
   } catch (error) {
     console.error('服务器启动失败:', error)
     process.exit(1)
@@ -71,3 +86,4 @@ const startServer = async () => {
 startServer()
 
 export default app
+export { io }

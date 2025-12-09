@@ -12,7 +12,8 @@ import {
   createLogistics,
   CreateLogisticsData,
   findLogisticsByOrderId,
-  createLogisticsBatch
+  createLogisticsBatch,
+  findExpectDeliveredTimeByOrderId
 } from '../models/Logistics'
 import { findProductById, updateProductSales } from '../models/Product'
 import { OrderStatus, LogisticsStatus } from '../generated/prisma/enums'
@@ -148,15 +149,17 @@ export const getConsumerOrdersHandler = async (
 ) => {
   try {
     const consumerId = req.user?.id
-    const { page = 1, limit = 10, orderNumber, status } = req.query
+    const { page = 1, limit = 10, searchKey, status, createTimeBegin, createTimeEnd } = req.query
 
     // 调用带筛选功能的查询方法
     const { orders, total } = await findOrdersByConsumerId(
       consumerId,
       Number(page),
       Number(limit),
-      orderNumber as string,
-      status as OrderStatus
+      searchKey as string,
+      status as OrderStatus,
+      createTimeBegin as string,
+      createTimeEnd as string
     )
 
     return successResponse(res, { orders, total }, '获取订单列表成功')
@@ -182,7 +185,8 @@ export const getMerchantOrdersHandler = async (
       receiver,
       productName,
       phone,
-      createTimeRange,
+      createTimeBegin,
+      createTimeEnd,
       company
     } = req.query
 
@@ -199,7 +203,8 @@ export const getMerchantOrdersHandler = async (
       receiver as string,
       productName as string,
       phone as string,
-      createTimeRange as string[],
+      createTimeBegin as string || undefined,
+      createTimeEnd as string || undefined,
       company as string
     )
     orders.forEach((order) => {
@@ -220,7 +225,7 @@ export const getMerchantOrdersHandler = async (
     }
     return successResponse(
       res,
-      { orders: resOrders, total },
+      { orders: resOrders, total: resOrders.length },
       '获取订单列表成功'
     )
   } catch (error) {
@@ -251,8 +256,17 @@ export const getConsumerOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
+    
+    // 获取预计送达时间
+    const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
+    
+    // 为订单添加expectDeliveredTime属性
+    const orderWithExpectTime = {
+      ...order,
+      expectDeliveredTime
+    }
 
-    return successResponse(res, { order, logistics }, '获取订单详情成功')
+    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
   } catch (error) {
     console.error('获取消费者订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
@@ -281,8 +295,17 @@ export const getMerchantOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
+    
+    // 获取预计送达时间
+    const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
+    
+    // 为订单添加expectDeliveredTime属性
+    const orderWithExpectTime = {
+      ...order,
+      expectDeliveredTime
+    }
 
-    return successResponse(res, { order, logistics }, '获取订单详情成功')
+    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
   } catch (error) {
     console.error('获取商家订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
@@ -316,8 +339,17 @@ export const getOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
+    
+    // 获取预计送达时间
+    const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
+    
+    // 为订单添加expectDeliveredTime属性
+    const orderWithExpectTime = {
+      ...order,
+      expectDeliveredTime
+    }
 
-    return successResponse(res, { order, logistics }, '获取订单详情成功')
+    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
   } catch (error) {
     console.error('获取订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
@@ -424,7 +456,7 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
             orderId: id,
             status: LogisticsStatus.TRANSPORTING,
             location: step.polyline,
-            describe: `快件到达${step.cities[0].name}${step.cities[0].districts[0].name ?? ''},正${step.instruction}。`,
+            describe: (step.cities && step.cities.length > 0) ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。` : `正${step.instruction}。`,
             createTime: currentTime
           }
         }
@@ -445,7 +477,7 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
             orderId: id,
             status: LogisticsStatus.DELIVERING,
             location: step.polyline,
-            describe: `快件到达${step.cities[0].name}${step.cities[0].districts[0].name ?? ''},正${step.instruction}。`,
+            describe: (step.cities && step.cities.length > 0) ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。` : `正${step.instruction}。`,
             createTime: currentTime
           }
         }
@@ -470,4 +502,49 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
   }
 
   return successResponse(res, result, '订单发货成功')
+}
+
+// 用户确认收货
+export const confirmReceiveHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params
+
+    // 获取订单信息
+    const order = await findOrderById(id)
+    if (!order) {
+      return badRequestResponse(res, '订单不存在')
+    }
+
+    // 验证权限：只有订单所属消费者才能确认收货
+    const consumerId = req.user?.id
+    if (order.consumerId !== consumerId) {
+      return errorResponse(res, '无权操作此订单')
+    }
+
+    // 验证订单状态是否为待收货
+    if (order.status !== LogisticsStatus.WAITRECEIVE) {
+      return badRequestResponse(res, '订单当前状态不允许确认收货')
+    }
+
+    const now = new Date()
+
+    // 更新订单的收货时间为当前时间
+    const updatedOrder = await updateOrder(id, {
+      receiptTime: now
+    })
+
+    // 在logistics表内添加一条记录
+    await createLogistics({
+      orderId: id,
+      status: LogisticsStatus.RECEIVED,
+      describe: '用户已确认收货！',
+      location: order.receiveAddress.location,
+      createTime: now
+    })
+
+    return successResponse(res, updatedOrder, '确认收货成功')
+  } catch (error) {
+    console.error('确认收货失败:', error)
+    return errorResponse(res, '确认收货失败')
+  }
 }

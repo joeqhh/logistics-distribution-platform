@@ -1,78 +1,89 @@
-.loginContainer {
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #eff6ff 0%, #e0e7ff 100%);
+.container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 1rem;
+  align-items: center;
+  height: 100vh;
+  // background-color: #f5f7fa;
+    background: linear-gradient(to bottom right, #eff6ff 0%, #e0e7ff 100%);
 }
 
-.loginCard {
-  background: #ffffff;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border: none;
-  border-radius: 0.5rem;
+.content {
   width: 100%;
   max-width: 400px;
+  padding: 40px 32px 16px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
+.login-form {
+  &-wrapper {
+    width: 100%;
+  }
 
-.title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-}
+  &-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    line-height: 36px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
 
-.subtitle {
-  font-size: 1.125rem;
-  color: #6b7280;
-  margin-bottom: 0;
-}
+  &-sub-title {
+    font-size: 16px;
+    line-height: 24px;
+    color: #909399;
+    margin-bottom: 32px;
+    text-align: center;
+  }
 
-.formItem {
-  margin-bottom: 1.5rem;
-}
+  &-error-msg {
+    height: 24px;
+    line-height: 24px;
+    color: rgb(var(--red-6));
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
 
-.input {
-  border-radius: 0.5rem;
-}
+  &-password-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
 
-.inputPrefix {
-  color: #9ca3af;
-}
+  &-register-btn {
+    color: #409eff !important;
+  }
 
-.rememberSection {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  :global(.arco-form-item) {
+    margin-bottom: 20px;
+  }
 
-.forgotLink {
-  color: #2563eb;
-  transition: color 0.3s ease;
-  
-  &:hover {
-    color: #1d4ed8;
+  :global(.arco-btn-primary) {
+    width: 100%;
+    height: 40px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+
+  :global(.arco-input) {
+    height: 40px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  :global(.arco-checkbox) {
+    font-size: 14px;
   }
 }
 
-.loginButton {
-  width: 100%;
-  height: 3rem;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
-  border: none;
-  font-weight: 600;
-  font-size: 1.125rem;
-  transition: all 0.3s ease;
-  
-  &:hover {
+
+.login-button {
+    background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
+      &:hover {
     background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
   }
 }
@@ -91,7 +102,8 @@
   font-weight: 600;
   margin-left: 0.25rem;
   transition: color 0.3s ease;
-  
+  text-decoration: none;
+
   &:hover {
     color: #1d4ed8;
   }

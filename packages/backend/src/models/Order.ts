@@ -135,16 +135,30 @@ export const findOrdersByConsumerId = async (
   consumerId: number,
   page: number = 1,
   limit: number = 10,
-  orderNumber?: string,
-  status?: OrderStatus
+  searchKey?: string,
+  status?: OrderStatus,
+  createTimeBegin?: string,
+  createTimeEnd?: string
 ): Promise<{ orders: any[]; total: number }> => {
   const skip = (page - 1) * limit
-
+  console.log(createTimeBegin,createTimeEnd)
   // 构建查询条件
   const whereCondition = {
     consumerId,
     isDeleted: false,
-    ...(orderNumber ? { number: { contains: orderNumber } } : {})
+    ...(searchKey ? {
+      OR: [
+        { number: { contains: searchKey } },
+        { merchant: { name: { contains: searchKey } } },
+        { product: { name: { contains: searchKey } } }
+      ]
+    } : {}),
+    ...((createTimeBegin || createTimeEnd) ? {
+      createTime: {
+        ...(createTimeBegin ? { gte: new Date(createTimeBegin) } : {}),
+        ...(createTimeEnd ? { lte: new Date(createTimeEnd + ' 23:59:59') } : {})
+      }
+    } : {})
     // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 
@@ -168,7 +182,13 @@ export const findOrdersByConsumerId = async (
           select: {
             id: true,
             name: true,
-            cover: true
+            cover: true,
+            price: true
+          }
+        },
+        merchant: {
+          select: {
+            name: true,
           }
         },
         receiveAddress: {
@@ -211,7 +231,11 @@ export const findOrdersByConsumerId = async (
   // 在代码层面进行status筛选
   let filteredOrders = ordersWithLatestStatus;
   if (status) {
-    filteredOrders = ordersWithLatestStatus.filter(order => order.status === status);
+    // if(status === OrderStatus.WAITRECEIVE) {
+    //   filteredOrders = ordersWithLatestStatus.filter(order => ([OrderStatus.WAITRECEIVE, OrderStatus.TRANSPORTING, OrderStatus.DELIVERING] as OrderStatus[]).includes(order.status!));
+    // } else {
+      filteredOrders = ordersWithLatestStatus.filter(order => order.status === status);
+    // }
   }
 
   return { orders: filteredOrders, total }
@@ -227,7 +251,8 @@ export const findOrdersByMerchantId = async (
   receiver?: string,
   productName?: string,
   phone?: string,
-  createTimeRange?: string[],
+createTimeBegin?: string,
+createTimeEnd?: string,
   company?: string
 ): Promise<{ orders: any[]; total: number }> => {
   const skip = (page - 1) * limit
@@ -241,14 +266,12 @@ export const findOrdersByMerchantId = async (
     ...(phone ? { receiveAddress: { phone: { contains: phone } } } : {}),
     ...(productName ? { product: { name: { contains: productName } } } : {}),
     ...(company ? {  company: { equals: company } } : {}),
-    ...(createTimeRange
-      ? {
-          createTime: {
-            gte: new Date(createTimeRange[0]),
-            lte: new Date(createTimeRange[1])
-          }
-        }
-      : {})
+    ...((createTimeBegin || createTimeEnd) ? {
+      createTime: {
+        ...(createTimeBegin ? { gte: new Date(createTimeBegin) } : {}),
+        ...(createTimeEnd ? { lte: new Date(createTimeEnd + ' 23:59:59') } : {})
+      }
+    } : {})
     // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 

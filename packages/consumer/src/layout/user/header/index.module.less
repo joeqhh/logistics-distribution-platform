@@ -1,0 +1,18 @@
+@nav-size-height: 60px;
+@layout-max-width: 1100px;
+
+
+
+.layout-navbar {
+  position: fixed;
+  width: 100%;
+  // min-width: @layout-max-width;
+  top: 0;
+  left: 0;
+  height: @nav-size-height;
+  z-index: 100;
+
+  &-hidden {
+    height: 0;
+  }
+}

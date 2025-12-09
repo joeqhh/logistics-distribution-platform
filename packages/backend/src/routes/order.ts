@@ -8,7 +8,8 @@ import {
   deliverOrderHandler,
   getConsumerOrderDetailHandler,
   getMerchantOrderDetailHandler,
-  updateOrderStatusHandler
+  updateOrderStatusHandler,
+  confirmReceiveHandler
 } from '../controllers/orderController';
 
 const router: Router = express.Router();
@@ -35,7 +36,10 @@ router.get('/merchant/:id', merchantProtect, getMerchantOrderDetailHandler);
 
 // 商家端更新订单状态（发货等）
 router.put('/:id/status', merchantProtect, updateOrderStatusHandler);
-
+// 商家发货
 router.post('/:id/deliver', merchantProtect, deliverOrderHandler);
+
+// 用户确认收货
+router.post('/:id/confirm', consumerProtect, confirmReceiveHandler);
 
 export default router;
