@@ -4,12 +4,11 @@ import {
   createOrderHandler,
   getConsumerOrdersHandler,
   getMerchantOrdersHandler,
-  getOrderDetailHandler,
   deliverOrderHandler,
   getConsumerOrderDetailHandler,
   getMerchantOrderDetailHandler,
-  updateOrderStatusHandler,
-  confirmReceiveHandler
+  confirmReceiveHandler,
+  merchantDeleteOrder
 } from '../controllers/orderController';
 
 const router: Router = express.Router();
@@ -22,6 +21,9 @@ router.post('/create', consumerProtect, createOrderHandler);
 // 获取用户订单列表（支持筛选）
 router.get('/consumer', consumerProtect, getConsumerOrdersHandler);
 
+// 用户确认收货
+router.post('/:id/confirm', consumerProtect, confirmReceiveHandler);
+
 // 获取商家订单列表（支持筛选）
 router.get('/merchant', merchantProtect, getMerchantOrdersHandler);
 
@@ -31,15 +33,10 @@ router.get('/consumer/:id', consumerProtect, getConsumerOrderDetailHandler);
 // 获取商家订单详情
 router.get('/merchant/:id', merchantProtect, getMerchantOrderDetailHandler);
 
-// 获取订单详情（用户和商家都可访问，但有权限验证）- 保留以兼容现有代码
-// router.get('/:id', consumerProtect, getOrderDetailHandler);
-
-// 商家端更新订单状态（发货等）
-router.put('/:id/status', merchantProtect, updateOrderStatusHandler);
 // 商家发货
 router.post('/:id/deliver', merchantProtect, deliverOrderHandler);
 
-// 用户确认收货
-router.post('/:id/confirm', consumerProtect, confirmReceiveHandler);
+// 商家删除订单
+router.post('/:id/delete', merchantProtect, merchantDeleteOrder);
 
 export default router;

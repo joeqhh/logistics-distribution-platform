@@ -3,9 +3,10 @@ import {
   getMerchantOrders,
   getMerchantAddresses,
   merchantDeliverOrder,
-  logisticsCompanies
+  logisticsCompanies,
+  deleteOrder
 } from '@/api'
-import type { OrderQueryParams, Address, Order,logisticsCompany } from '@/api'
+import type { OrderQueryParams, Address, Order, logisticsCompany } from '@/api'
 import {
   Image,
   Badge,
@@ -23,8 +24,9 @@ import { formatLocalDateTime } from '@/utils/formatDate'
 import styles from './index.module.less'
 import { IconRefresh, IconSearch } from '@arco-design/web-react/icon'
 
-
 export default function WaitDelivery() {
+  const [deleteOrderLoading, setdDleteOrderLoading] = useState(false)
+  const [deliverLoading, setDeliverLoading] = useState(false)
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [orders, setOrders] = useState<Order[]>()
@@ -136,38 +138,43 @@ export default function WaitDelivery() {
         return (
           <>
             <Space>
-              <Button
-                type="text"
-                size="small"
-                style={{ padding: 0 }}
-                // onClick={() => window.open(`/deliver/${record.id}`,'_blank')}
-                onClick={() => handleShowDeliverModal(record)}
-              >
-                发货
-              </Button>
-              {/* <Button
-                type="text"
-                status="danger"
-                size="small"
-                style={{ padding: 0, marginLeft: 10 }}
-                // onClick={handleDeleteAddress}
-              >
-                删除
-              </Button> */}
+              {record.canDeliver ? (
+                <Button
+                  type="text"
+                  size="small"
+                  style={{ padding: 0 }}
+                  onClick={() => handleShowDeliverModal(record)}
+                >
+                  发货
+                </Button>
+              ) : (
+                <Button
+                  type="text"
+                  size="small"
+                  style={{ padding: 0 }}
+                  loading={deleteOrderLoading}
+                  onClick={() => handleDeleteOrder(record.id)}
+                >
+                  删除订单
+                </Button>
+              )}
             </Space>
           </>
         )
-        // }
       }
     }
   ]
 
   const handleGetMerchantOrders = (query: OrderQueryParams) => {
     setLoading(true)
-    getMerchantOrders({page: pagination.current,limit:pagination.pageSize,...query})
+    getMerchantOrders({
+      page: pagination.current,
+      limit: pagination.pageSize,
+      ...query
+    })
       .then((res) => {
-        console.log(res);
-        
+        console.log(res)
+
         const { orders, total } = res.data!
         setOrders(orders)
         setPagination((pagination) => ({ ...pagination, total }))
@@ -194,8 +201,8 @@ export default function WaitDelivery() {
       page: current,
       limit: pageSize,
       ...values,
-      createTimeBegin: values.createTimeRange[0] || undefined,
-      createTimeEnd: values.createTimeRange[1] || undefined,
+      createTimeBegin: values.createTimeRange?.[0] || undefined,
+      createTimeEnd: values.createTimeRange?.[1] || undefined
     })
   }
 
@@ -216,7 +223,6 @@ export default function WaitDelivery() {
     getMerchantAddresses().then((res) => {
       console.log(res)
       setSenderAddressOptions(res.data.items)
-      // setSenderAddressOptions()
       setDeliverOrder(record)
       setModalVisible(true)
     })
@@ -224,24 +230,47 @@ export default function WaitDelivery() {
 
   const handleOnDeliverOrder = () => {
     if (selectedSenderAddressId && selectedLogisticCompany) {
+      setDeliverLoading(true)
       merchantDeliverOrder(
         deliverOrder!.id,
         selectedSenderAddressId,
         selectedLogisticCompany
       )
-        .then((res) => {
+        .then(() => {
           handleGetMerchantOrders({ status: 'WAITDELIVER' })
           Message.success('发货成功!')
           setModalVisible(false)
         })
-        .catch((error) => {
+        .catch(() => {
           Message.error('发货失败!')
+        })
+        .finally(() => {
+          setDeliverLoading(false)
         })
     } else if (!selectedSenderAddressId) {
       Message.info('请选择发货地址!')
     } else {
       Message.info('请选择快递公司!')
     }
+  }
+
+  const handleDeleteOrder = (orderId: string) => {
+    setdDleteOrderLoading(true)
+    deleteOrder(orderId)
+      .then((res: any) => {
+        if (res && res.code === 200) {
+          Message.success(res.msg)
+          handleGetMerchantOrders({ status: 'WAITDELIVER' })
+        } else {
+          Message.error(res.msg)
+        }
+      })
+      .catch((err) => {
+        Message.error(err.msg)
+      })
+      .finally(() => {
+        setdDleteOrderLoading(false)
+      })
   }
 
   useEffect(() => {
@@ -262,6 +291,7 @@ export default function WaitDelivery() {
           }}
           autoFocus={false}
           focusLock={true}
+          confirmLoading={deliverLoading}
         >
           <Form>
             <Form.Item label="收货地址">
@@ -278,10 +308,28 @@ export default function WaitDelivery() {
               <Select
                 placeholder="请选择发货地址"
                 onChange={(value) => setSelectedSenderAddressId(value)}
-                options={senderAddressOptions?.map((address) => ({
-                  label: formatAddress(address),
-                  value: address.id
-                }))}
+                options={senderAddressOptions?.map((address) => {
+                  const { name, phone, area, detailedAddress } = address
+                  return {
+                    label: (
+                      <>
+                        <div
+                          style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {area.replaceAll('/', '') + (detailedAddress || '')}
+                        </div>
+                        <div style={{ color: 'gray', fontSize: 12 }}>
+                          {name},{phone}
+                        </div>
+                      </>
+                    ),
+                    value: address.id
+                  }
+                })}
               />
             </Form.Item>
             <Form.Item

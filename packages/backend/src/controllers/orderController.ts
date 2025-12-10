@@ -24,7 +24,7 @@ import {
 } from '../utils/response'
 import { AuthRequest } from '../middleware/authCheck'
 import { orderCanDeliver } from '../utils/addressUtils'
-import { findAddressById } from '../models'
+import { findAddressById, deleteOrder } from '../models'
 
 // 生成随机订单号
 const generateOrderNumber = (): string => {
@@ -149,7 +149,14 @@ export const getConsumerOrdersHandler = async (
 ) => {
   try {
     const consumerId = req.user?.id
-    const { page = 1, limit = 10, searchKey, status, createTimeBegin, createTimeEnd } = req.query
+    const {
+      page = 1,
+      limit = 10,
+      searchKey,
+      status,
+      createTimeBegin,
+      createTimeEnd
+    } = req.query
 
     // 调用带筛选功能的查询方法
     const { orders, total } = await findOrdersByConsumerId(
@@ -203,8 +210,8 @@ export const getMerchantOrdersHandler = async (
       receiver as string,
       productName as string,
       phone as string,
-      createTimeBegin as string || undefined,
-      createTimeEnd as string || undefined,
+      (createTimeBegin as string) || undefined,
+      (createTimeEnd as string) || undefined,
       company as string
     )
     orders.forEach((order) => {
@@ -256,17 +263,21 @@ export const getConsumerOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
-    
+
     // 获取预计送达时间
     const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
-    
+
     // 为订单添加expectDeliveredTime属性
     const orderWithExpectTime = {
       ...order,
       expectDeliveredTime
     }
 
-    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
+    return successResponse(
+      res,
+      { order: orderWithExpectTime, logistics },
+      '获取订单详情成功'
+    )
   } catch (error) {
     console.error('获取消费者订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
@@ -295,17 +306,21 @@ export const getMerchantOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
-    
+
     // 获取预计送达时间
     const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
-    
+
     // 为订单添加expectDeliveredTime属性
     const orderWithExpectTime = {
       ...order,
       expectDeliveredTime
     }
 
-    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
+    return successResponse(
+      res,
+      { order: orderWithExpectTime, logistics },
+      '获取订单详情成功'
+    )
   } catch (error) {
     console.error('获取商家订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
@@ -339,61 +354,33 @@ export const getOrderDetailHandler = async (
 
     // 获取物流信息
     const logistics = await findLogisticsByOrderId(id)
-    
+
     // 获取预计送达时间
     const expectDeliveredTime = await findExpectDeliveredTimeByOrderId(id)
-    
+
     // 为订单添加expectDeliveredTime属性
     const orderWithExpectTime = {
       ...order,
       expectDeliveredTime
     }
 
-    return successResponse(res, { order: orderWithExpectTime, logistics }, '获取订单详情成功')
+    return successResponse(
+      res,
+      { order: orderWithExpectTime, logistics },
+      '获取订单详情成功'
+    )
   } catch (error) {
     console.error('获取订单详情失败:', error)
     return errorResponse(res, '获取订单详情失败')
   }
 }
 
-// 更新订单状态（发货等操作）
-export const updateOrderStatusHandler = async (
-  req: AuthRequest,
-  res: Response
-) => {
-  // try {
-  //   const { id } = req.params
-  //   const { status } = req.body
-  //   if (!status) {
-  //     return badRequestResponse(res, '缺少状态参数')
-  //   }
-  //   // 获取订单信息
-  //   const order = await findOrderById(id)
-  //   if (!order) {
-  //     return badRequestResponse(res, '订单不存在')
-  //   }
-  //   // 验证权限：只有订单所属商家才能更新状态
-  //   const merchantId = req.user?.id
-  //   if (order.merchantId !== merchantId) {
-  //     return errorResponse(res, '无权操作此订单')
-  //   }
-  //   // 更新订单状态
-  //   const updatedOrder = await updateOrder(id, {
-  //     status: status as OrderStatus
-  //   })
-  //   // 同时更新物流状态
-  //   const logistics = await findLogisticsByOrderId(id)
-  //   if (logistics) {
-  //     // 这里应该调用物流更新方法，但由于模型文件中logistics.ts没有完整显示更新物流状态的方法，暂时注释
-  //     // await updateLogisticsStatus(id, status as LogisticsStatus);
-  //   }
-  //   return successResponse(res, updatedOrder, '订单状态更新成功')
-  // } catch (error) {
-  //   console.error('更新订单状态失败:', error)
-  //   return errorResponse(res, '更新订单状态失败')
-  // }
-}
-
+/**
+ *
+ * @param req 商家发货
+ * @param res
+ * @returns
+ */
 export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params
   const { addressId, logisticsCompany } = req.body
@@ -456,7 +443,10 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
             orderId: id,
             status: LogisticsStatus.TRANSPORTING,
             location: step.polyline,
-            describe: (step.cities && step.cities.length > 0) ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。` : `正${step.instruction}。`,
+            describe:
+              step.cities && step.cities.length > 0
+                ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。`
+                : `正${step.instruction}。`,
             createTime: currentTime
           }
         }
@@ -477,7 +467,10 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
             orderId: id,
             status: LogisticsStatus.DELIVERING,
             location: step.polyline,
-            describe: (step.cities && step.cities.length > 0) ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。` : `正${step.instruction}。`,
+            describe:
+              step.cities && step.cities.length > 0
+                ? `快件到达${step.cities[0]?.name ?? ''}${step.cities[0]?.districts[0].name ?? ''},正${step.instruction}。`
+                : `正${step.instruction}。`,
             createTime: currentTime
           }
         }
@@ -504,8 +497,16 @@ export const deliverOrderHandler = async (req: AuthRequest, res: Response) => {
   return successResponse(res, result, '订单发货成功')
 }
 
-// 用户确认收货
-export const confirmReceiveHandler = async (req: AuthRequest, res: Response) => {
+/**
+ * 用户确认收货
+ * @param req
+ * @param res
+ * @returns
+ */
+export const confirmReceiveHandler = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const { id } = req.params
 
@@ -546,5 +547,42 @@ export const confirmReceiveHandler = async (req: AuthRequest, res: Response) => 
   } catch (error) {
     console.error('确认收货失败:', error)
     return errorResponse(res, '确认收货失败')
+  }
+}
+
+/**
+ * 商家删除订单
+ * @param req
+ * @param res
+ */
+export const merchantDeleteOrder = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params
+
+  try {
+    // 获取订单信息
+    const order = await findOrderById(id)
+    if (!order) {
+      return badRequestResponse(res, '订单不存在')
+    }
+
+    // 验证权限：只有订单所属商家才能删除
+    if (order.merchantId !== req.user?.id) {
+      return errorResponse(res, '无权操作此订单')
+    }
+
+    const canDeliver = orderCanDeliver(
+      order.receiveAddress.location,
+      order.merchant.deliveryArea
+    )
+    // 只有不能配送且没发货的订单才能删除
+    if (canDeliver || order.status !== OrderStatus.WAITDELIVER) {
+      return errorResponse(res, '当前订单不能删除')
+    }
+
+    await deleteOrder(id)
+    return successResponse(res, null, '删除订单成功')
+  } catch (error) {
+    console.error('删除订单失败:', error)
+    return errorResponse(res, '删除订单失败')
   }
 }

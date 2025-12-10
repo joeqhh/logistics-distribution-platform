@@ -41,7 +41,7 @@ function createInfoWindow(content: string) {
 }
 
 
-function animateMarker(marker: any, newLngLat: any,routeLine: any, infoWindow: any,expectTime: any,isEnd: boolean,duration = 800) {
+function animateMarker(map: any,marker: any, newLngLat: any,routeLine: any, infoWindow: any,expectTime: any,isEnd: boolean,duration = 800) {
 
   let i = 0
 
@@ -66,15 +66,16 @@ function animateMarker(marker: any, newLngLat: any,routeLine: any, infoWindow: a
   
       marker.setPosition([lng, lat]);
       routeLine.setPath([...routeLine.getPath(),[lng, lat]])
+      map.setCenter(marker.getPosition())
       if (progress < 1) requestAnimationFrame(animate);
       else {
         if(i < newLngLat.length) {
           func(newLngLat[i])
         } else {
-          if(!isEnd) {
+          const time = parseInt(formatTimeDiff(expectTime))
+          if(!isEnd && time >= 0) {
             infoWindow.setPosition(newLngLat[newLngLat.length - 1])
-            const time = formatTimeDiff(expectTime)
-            infoWindow.setContent(createInfoWindow(parseInt(time) === 0 ? '即将送达' :`预计${formatTimeDiff(expectTime)}后送达`))
+            infoWindow.setContent(createInfoWindow(time === 0 ? '即将送达' :`预计${formatTimeDiff(expectTime)}后送达`))
             infoWindow.open()
           }
         }
@@ -134,7 +135,7 @@ export default function Logistics() {
     } else {
       currentMarkerRef.current.setIcon((await iconMap[logisticsStatus as keyof typeof iconMap]()).default)
     }
-    animateMarker(currentMarkerRef.current,points,routeLineRef.current,infoWindowRef.current,(order as any).expectDeliveredTime,['WAITRECEIVE','RECEIVED'].includes(logisticsStatus))
+    animateMarker(mapRef.current,currentMarkerRef.current,points,routeLineRef.current,infoWindowRef.current,(order as any).expectDeliveredTime,['WAITRECEIVE','RECEIVED'].includes(logisticsStatus))
   }
 
   const handleOnCreatedMap = async (map: any, AMap: any) => {
@@ -262,22 +263,21 @@ export default function Logistics() {
     // 连接成功事件（合并加入房间的逻辑）
     socketRef.current.on('connect', () => {
       socketRef.current?.emit('joinLogisticsRoom', orderId)
-      Message.success('物流推送连接成功')
+      // Message.success('物流推送连接成功')
     })
 
     // 接收坐标更新（使用统一事件名）
     socketRef.current.on('logisticsCoordinateUpdate', handler)
 
-    // 连接错误
-    socketRef.current.on('connect_error', (error) => {
-      console.error('WebSocket连接错误:', error)
-      Message.error('物流推送连接失败，请刷新页面重试')
-    })
+    // // 连接错误
+    // socketRef.current.on('connect_error', (error) => {
+    //   Message.error('物流推送连接失败，请刷新页面重试')
+    // })
 
-    // 连接断开
-    socketRef.current.on('disconnect', (reason) => {
-      Message.info('物流推送已断开')
-    })
+    // // 连接断开
+    // socketRef.current.on('disconnect', (reason) => {
+    //   Message.info('物流推送已断开')
+    // })
 
     // 组件卸载时离开房间并关闭连接
     return () => {

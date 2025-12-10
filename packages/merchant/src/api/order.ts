@@ -76,6 +76,15 @@ export const createOrder = async (params: any): Promise<Order> => {
 }
 
 /**
+ * 删除订单
+ * @param 订单id 
+ * @returns 
+ */
+export const deleteOrder = async (id: string) => {
+  return axiosInstance.post(`/order/${id}/delete`)
+}
+
+/**
  * 订单发货
  * @param id
  * @param addressId

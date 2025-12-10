@@ -40,9 +40,8 @@ function UserInfo() {
             <InfoForm loading={loading} userInfo={userInfo} onUpdate={onUpdate} />
             }
           </Tabs.TabPane>
-          <Tabs.TabPane key="security" title="安全设置">
-            {/* <Security /> */}
-          </Tabs.TabPane>
+          {/* <Tabs.TabPane key="security" title="安全设置">
+          </Tabs.TabPane> */}
         </Tabs>
       </Card>
     </div>

@@ -10,7 +10,7 @@ import {
   Form,
   Select,
   Input,
-  DatePicker,
+  DatePicker
 } from '@arco-design/web-react'
 import { IconSearch, IconRefresh } from '@arco-design/web-react/icon'
 import {
@@ -29,7 +29,7 @@ import NumberPicker from '@/components/NumberPicker'
 import ProductEditModal from './productEditModal'
 
 export default function ProductList() {
-        const [editVisible, setEditVisible] = useState(false)
+  const [editVisible, setEditVisible] = useState(false)
   const [editProduct, setEditProduct] = useState<Product>()
 
   const [productList, setProductList] = useState([])
@@ -131,6 +131,10 @@ export default function ProductList() {
               limit: pagination.pageSize
             })
             setProductList(res.data.list)
+            setPagination((pagination) => ({
+              ...pagination,
+              total: res.data.total
+            }))
           } catch (error) {
             Message.error('操作失败，请重试')
           } finally {
@@ -196,17 +200,13 @@ export default function ProductList() {
     }
   ]
 
-  function onChangeTable(
-    pagination: any,
-    _: any,
-    filters: any,
-  ) {
+  function onChangeTable(pagination: any, _: any, filters: any) {
     const { current, pageSize } = pagination
     setLoading(true)
     getMerchantProducts({
       page: current,
       limit: pageSize,
-      status: filters.status?.[0],
+      status: filters.status?.[0]
     }).then((res) => {
       setProductList(res.data.list)
       setPagination((pagination) => ({
@@ -324,7 +324,6 @@ export default function ProductList() {
     })
   }
 
-
   useEffect(() => {
     getMerchantProducts({
       page: pagination.current,
@@ -338,7 +337,12 @@ export default function ProductList() {
   return (
     <>
       {editVisible && editProduct && (
-        <ProductEditModal product={editProduct} visible={editVisible} onCancel={() => setEditVisible(false)}  onSuccess={handleOnSubmitForm} />
+        <ProductEditModal
+          product={editProduct}
+          visible={editVisible}
+          onCancel={() => setEditVisible(false)}
+          onSuccess={handleOnSubmitForm}
+        />
       )}
 
       <div className={styles.container}>

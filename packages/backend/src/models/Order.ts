@@ -61,6 +61,11 @@ export const findOrderById = async (id: string): Promise<any> => {
       productId: true,
       receiveAddressId: true,
       senderAddressId: true,
+        merchant: {
+          select: {
+            deliveryArea: true
+          }
+        },
       product: {
         select: {
           id: true,

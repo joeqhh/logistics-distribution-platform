@@ -75,7 +75,7 @@ export default function ProductDetail() {
   const handleBuyNow = () => {
     checkLoginAndExecute(() => {
       getAddresses().then((res) => {
-        if(!res.data.items || res.data.items.length === 0) {
+        if (!res.data.items || res.data.items.length === 0) {
           Modal.confirm({
             title: '请添加收货地址',
             content: '您需要先添加收货地址才能执行此操作。',
@@ -149,13 +149,24 @@ export default function ProductDetail() {
         >
           <Form form={form} onSubmit={handleOnSubmit}>
             <Form.Item field="addressId" required label="收货地址">
-              <Select placeholder="请选择收货地址" defaultValue={0}>
-                {adderssOptions?.map((option) => (
-                  <Select.Option key={option.id} value={option.id}>
-                    {formatAddress(option)}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Select
+                placeholder="请选择收货地址"
+                defaultValue={0}
+                options={adderssOptions?.map((option) => {
+                                    const { name, phone, area, detailedAddress } = option
+                  return {
+                    label: (
+                      <>
+                        <div style={{overflow: 'hidden',textOverflow: 'ellipsis',whiteSpace: 'nowrap'}}>
+                          {area.replaceAll('/', '') + (detailedAddress || '')}
+                        </div>
+                        <div style={{color: 'gray',fontSize: 12}}>{name},{phone}</div>
+                      </>
+                    ),
+                    value: option.id
+                  }
+                })}
+              />
             </Form.Item>
           </Form>
         </Modal>
