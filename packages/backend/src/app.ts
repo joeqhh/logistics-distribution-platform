@@ -10,6 +10,7 @@ import merchantRoutes from './routes/merchant'
 import consumerRoutes from "./routes/consumer"
 import orderRoutes from './routes/order'
 import { errorHandler } from './middleware/errorHandler'
+import  morgan from 'morgan'
 
 // 加载环境变量
 dotenv.config()
@@ -27,6 +28,7 @@ const io = new Server(httpServer, {
 // 中间件
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(morgan('dev'));
 
 // 配置multer用于处理multipart/form-data
 const storage = multer.memoryStorage()
