@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          // target: env.VITE_BACKEND_URL,
-          target: 'http://127.0.0.1:3001',
+          target: env.VITE_BACKEND_URL,
+          // target: 'http://127.0.0.1:3001',
           changeOrigin: true // 修改请求的 origin 为目标服务器的 origin
           // rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去掉 "/api" 前缀
         },
