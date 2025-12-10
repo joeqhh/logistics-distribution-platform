@@ -232,7 +232,7 @@ export const getMerchantOrdersHandler = async (
     }
     return successResponse(
       res,
-      { orders: resOrders, total: resOrders.length },
+      { orders: resOrders, total},
       '获取订单列表成功'
     )
   } catch (error) {

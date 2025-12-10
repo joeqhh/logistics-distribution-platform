@@ -11,7 +11,12 @@ import {
   Tag
 } from '@arco-design/web-react'
 import { IconSearch, IconRefresh } from '@arco-design/web-react/icon'
-import { getOrders,receiveOrder, type OrderQueryParams, type Order } from '@/api'
+import {
+  getOrders,
+  receiveOrder,
+  type OrderQueryParams,
+  type Order
+} from '@/api'
 import styles from './index.module.less'
 import { formatLocalDateTime } from '@/utils/formatDate'
 import { useHistory } from 'react-router-dom'
@@ -88,7 +93,7 @@ export default function Orders() {
     {
       title: '商品金额',
       dataIndex: 'price',
-      sorter: (a:any,b:any) => a.product.price - b.product.price,
+      sorter: (a: any, b: any) => a.product.price - b.product.price,
       render: (col: any, record: any) => `¥${record.product.price}`
     },
     {
@@ -149,9 +154,7 @@ export default function Orders() {
                   type="text"
                   size="small"
                   style={{ padding: 0, marginLeft: 10 }}
-                  onClick={() =>
-                    handleReceiveOrder(record.id)
-                  }
+                  onClick={() => handleReceiveOrder(record.id)}
                   // onClick={() => handleShowDeliverModal(record)}
                 >
                   确认收货
@@ -167,9 +170,9 @@ export default function Orders() {
 
   const handleGetOrders = (query?: OrderQueryParams) => {
     setLoading(true)
-    const { current, pageSize } = pagination
-    const {searchKey,createTimeRange,} = form.getFieldsValue()
-    getOrders(current, pageSize, {
+    const { pageSize } = pagination
+    const { searchKey, createTimeRange } = form.getFieldsValue()
+    getOrders(1, pageSize, {
       searchKey,
       createTimeBegin: createTimeRange?.[0],
       createTimeEnd: createTimeRange?.[1],
@@ -179,7 +182,11 @@ export default function Orders() {
       .then((res) => {
         const { data } = res
         setOrders(data.orders)
-        setPagination((pagination) => ({ ...pagination, total: data.orders.length }))
+        setPagination((pagination) => ({
+          ...pagination,
+          current: 1,
+          total: data.total
+        }))
       })
       .catch((error) => {
         console.error('获取订单列表失败:', error)
@@ -192,14 +199,35 @@ export default function Orders() {
 
   const onChangeTable = (pagination: any, _: any, filters: any) => {
     const { current, pageSize } = pagination
-    handleGetOrders({
+    setPagination((val) => ({ ...val, current, pageSize }))
+
+    setLoading(true)
+    console.log(current, pageSize)
+    const { searchKey, createTimeRange } = form.getFieldsValue()
+    getOrders(current, pageSize, {
+      searchKey,
+      createTimeBegin: createTimeRange?.[0],
+      createTimeEnd: createTimeRange?.[1],
       page: current,
       limit: pageSize,
-      ...filters
+      ...filters,
+      status: orderStatus === OrderMenuKey.ALL ? undefined : orderStatus
     })
+      .then((res) => {
+        const { data } = res
+        setOrders(data.orders)
+        setPagination((pagination) => ({ ...pagination, total: data.total }))
+      })
+      .catch((error) => {
+        console.error('获取订单列表失败:', error)
+        Message.error('获取订单列表失败')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
-  const handleReceiveOrder = (orderId: number) => { 
+  const handleReceiveOrder = (orderId: number) => {
     receiveOrder(orderId)
       .then(() => {
         Message.success('确认收货成功')

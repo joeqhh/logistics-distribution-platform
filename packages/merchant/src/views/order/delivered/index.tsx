@@ -158,7 +158,9 @@ export default function Delivered() {
 
         const { orders, total } = res.data!
         setOrders(orders)
-        setPagination((pagination) => ({ ...pagination, total }))
+        setPagination((pagination) => {
+          return { ...pagination, current: 1, total }
+        })
       })
       .finally(() => {
         setLoading(false)
@@ -168,9 +170,9 @@ export default function Delivered() {
   const handleOnSubmitForm = (values: any) => {
     console.log(values)
 
-    const { current, pageSize } = pagination
+    const { pageSize } = pagination
     handleGetMerchantOrders({
-      page: current,
+      // page: current,
       limit: pageSize,
       ...values,
       status: values.status ?? Object.keys(logisticsStatus).join(',')
@@ -179,12 +181,30 @@ export default function Delivered() {
 
   const onChangeTable = (pagination: any, _: any, filters: any) => {
     const { current, pageSize } = pagination
-    handleGetMerchantOrders({
+    setPagination((val) => ({ ...val, current, pageSize }))
+    setLoading(true)
+    getMerchantOrders({
       status: Object.keys(logisticsStatus).join(','),
       page: current,
       limit: pageSize,
       canDeliver: filters.canDeliver?.[0]
     })
+      .then((res) => {
+        console.log(res)
+
+        const { orders, total } = res.data!
+        setOrders(orders)
+        setPagination((pagination) => {
+          const { current, pageSize } = pagination
+
+          const cur = Math.min(Math.floor(total / pageSize) + 1, current)
+
+          return { ...pagination, current: cur, pageSize, total }
+        })
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   useEffect(() => {

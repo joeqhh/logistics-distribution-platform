@@ -298,10 +298,9 @@ export default function ProductList() {
 
   const handleOnSubmitForm = () => {
     const values = form.getFieldsValue()
-    const { current, pageSize } = pagination
+    const {  pageSize } = pagination
     setLoading(true)
     getMerchantProducts({
-      page: current,
       limit: pageSize,
       name: values.name,
       id: values.number,
@@ -316,7 +315,7 @@ export default function ProductList() {
       setProductList(res.data.list)
       setPagination((pagination) => ({
         ...pagination,
-        current,
+        current: 1,
         pageSize,
         total: res.data.total
       }))

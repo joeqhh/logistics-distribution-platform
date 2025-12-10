@@ -167,10 +167,26 @@ export default function WaitDelivery() {
 
   const handleGetMerchantOrders = (query: OrderQueryParams) => {
     setLoading(true)
+    getMerchantOrders(query)
+      .then((res) => {
+        const { orders, total } = res.data!
+        setOrders(orders)
+        setPagination((pagination) => ({ ...pagination, current: 1, total }))
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  const onChangeTable = (pagination: any, _: any, filters: any) => {
+    const { current, pageSize } = pagination
+    setPagination((val) => ({ ...val, current, pageSize }))
+    setLoading(true)
     getMerchantOrders({
-      page: pagination.current,
-      limit: pagination.pageSize,
-      ...query
+      status: 'WAITDELIVER',
+      page: current,
+      limit: pageSize,
+      canDeliver: filters.canDeliver?.[0]
     })
       .then((res) => {
         console.log(res)
@@ -184,21 +200,10 @@ export default function WaitDelivery() {
       })
   }
 
-  const onChangeTable = (pagination: any, _: any, filters: any) => {
-    const { current, pageSize } = pagination
-    handleGetMerchantOrders({
-      status: 'WAITDELIVER',
-      page: current,
-      limit: pageSize,
-      canDeliver: filters.canDeliver?.[0]
-    })
-  }
-
   const handleOnSubmitForm = (values: any) => {
-    const { current, pageSize } = pagination
+    const {  pageSize } = pagination
     handleGetMerchantOrders({
       status: 'WAITDELIVER',
-      page: current,
       limit: pageSize,
       ...values,
       createTimeBegin: values.createTimeRange?.[0] || undefined,

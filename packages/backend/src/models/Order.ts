@@ -167,64 +167,60 @@ export const findOrdersByConsumerId = async (
     // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where: whereCondition,
-      select: {
-        id: true,
-        number: true,
-        receiptTime: true,
-        company: true,
-        isDeleted: true,
-        createTime: true,
-        updateTime: true,
-        consumerId: true,
-        merchantId: true,
-        productId: true,
-        receiveAddressId: true,
-        senderAddressId: true,
-        product: {
-          select: {
-            id: true,
-            name: true,
-            cover: true,
-            price: true
-          }
-        },
-        merchant: {
-          select: {
-            name: true,
-          }
-        },
-        receiveAddress: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            area: true,
-            detailedAddress: true
-          }
-        },
-        senderAddress: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            area: true,
-            detailedAddress: true
-          }
+  // 先获取所有满足whereCondition的订单
+  const allOrders = await prisma.order.findMany({
+    where: whereCondition,
+    select: {
+      id: true,
+      number: true,
+      receiptTime: true,
+      company: true,
+      isDeleted: true,
+      createTime: true,
+      updateTime: true,
+      consumerId: true,
+      merchantId: true,
+      productId: true,
+      receiveAddressId: true,
+      senderAddressId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true,
+          price: true
         }
       },
-      skip,
-      take: limit,
-      orderBy: { createTime: 'desc' }
-    }),
-    prisma.order.count({ where: whereCondition })
-  ])
+      merchant: {
+        select: {
+          name: true,
+        }
+      },
+      receiveAddress: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          area: true,
+          detailedAddress: true
+        }
+      },
+      senderAddress: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          area: true,
+          detailedAddress: true
+        }
+      }
+    },
+    orderBy: { createTime: 'desc' }
+  })
 
   // 并行获取每个订单的最新物流状态
-  const ordersWithLatestStatus = await Promise.all(
-    orders.map(async (order) => {
+  const allOrdersWithStatus = await Promise.all(
+    allOrders.map(async (order) => {
       const latestStatus = await getOrderLatestLogisticsStatus(order.id);
       return {
         ...order,
@@ -234,16 +230,19 @@ export const findOrdersByConsumerId = async (
   );
 
   // 在代码层面进行status筛选
-  let filteredOrders = ordersWithLatestStatus;
+  let filteredOrders = allOrdersWithStatus;
   if (status) {
-    // if(status === OrderStatus.WAITRECEIVE) {
-    //   filteredOrders = ordersWithLatestStatus.filter(order => ([OrderStatus.WAITRECEIVE, OrderStatus.TRANSPORTING, OrderStatus.DELIVERING] as OrderStatus[]).includes(order.status!));
+    // if(status === LogisticsStatus.WAITRECEIVE) {
+    //   filteredOrders = allOrdersWithStatus.filter(order => ([LogisticsStatus.WAITRECEIVE, LogisticsStatus.TRANSPORTING, LogisticsStatus.DELIVERING] as LogisticsStatus[]).includes(order.status!));
     // } else {
-      filteredOrders = ordersWithLatestStatus.filter(order => order.status === status);
+      filteredOrders = allOrdersWithStatus.filter(order => status.includes(order.status!));
     // }
   }
 
-  return { orders: filteredOrders, total }
+  // 获取分页后的订单
+  const paginatedOrders = filteredOrders.slice(skip, skip + limit);
+
+  return { orders: paginatedOrders, total: filteredOrders.length }
 }
 
 // 根据商家ID查找订单列表（支持筛选）
@@ -280,64 +279,60 @@ createTimeEnd?: string,
     // 注意：status筛选现在在代码层面进行，不在数据库查询中
   }
 
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where: whereCondition,
-      select: {
-        id: true,
-        number: true,
-        receiptTime: true,
-        company: true,
-        isDeleted: true,
-        createTime: true,
-        updateTime: true,
-        consumerId: true,
-        merchant: {
-          select: {
-            deliveryArea: true
-          }
-        },
-        productId: true,
-        receiveAddressId: true,
-        senderAddressId: true,
-        product: {
-          select: {
-            id: true,
-            name: true,
-            cover: true,
-            price: true
-          }
-        },
-        receiveAddress: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            area: true,
-            location: true,
-            detailedAddress: true
-          }
+  // 先获取所有满足whereCondition的订单
+  const allOrders = await prisma.order.findMany({
+    where: whereCondition,
+    select: {
+      id: true,
+      number: true,
+      receiptTime: true,
+      company: true,
+      isDeleted: true,
+      createTime: true,
+      updateTime: true,
+      consumerId: true,
+      merchant: {
+        select: {
+          deliveryArea: true
         }
-        // senderAddress: {
-        //   select: {
-        //     id: true,
-        //     name: true,
-        //     phone: true,
-        //     area: true,
-        //     detailedAddress: true
-        //   }
-        // }
       },
-      skip,
-      take: limit,
-      orderBy: { createTime: 'desc' }
-    }),
-    prisma.order.count({ where: whereCondition })
-  ])
+      productId: true,
+      receiveAddressId: true,
+      senderAddressId: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          cover: true,
+          price: true
+        }
+      },
+      receiveAddress: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          area: true,
+          location: true,
+          detailedAddress: true
+        }
+      }
+      // senderAddress: {
+      //   select: {
+      //     id: true,
+      //     name: true,
+      //     phone: true,
+      //     area: true,
+      //     detailedAddress: true
+      //   }
+      // }
+    },
+    orderBy: { createTime: 'desc' }
+  })
 
   // 并行获取每个订单的最新物流状态
-  const ordersWithLatestStatus = await Promise.all(
-    orders.map(async (order) => {
+  const allOrdersWithStatus = await Promise.all(
+    allOrders.map(async (order) => {
       const latestStatus = await getOrderLatestLogisticsStatus(order.id);
       return {
         ...order,
@@ -347,13 +342,16 @@ createTimeEnd?: string,
   );
   
   // 在代码层面进行status筛选
-  let filteredOrders = ordersWithLatestStatus;
+  let filteredOrders = allOrdersWithStatus;
   
   if (status && status.length > 0) {
-    filteredOrders = ordersWithLatestStatus.filter(order => order.status && status.includes(order.status));
+    filteredOrders = allOrdersWithStatus.filter(order => order.status && status.includes(order.status));
   }
 
-  return { orders: filteredOrders, total }
+  // 获取分页后的订单
+  const paginatedOrders = filteredOrders.slice(skip, skip + limit);
+
+  return { orders: paginatedOrders, total: filteredOrders.length }
 }
 
 // 创建新订单
