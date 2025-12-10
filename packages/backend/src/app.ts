@@ -67,7 +67,7 @@ app.use(errorHandler)
 const startServer = async () => {
   try {
     // 启动服务器
-    httpServer.listen(PORT, () => {
+    httpServer.listen({port: PORT,hostname: '0.0.0.0'}, () => {
       console.log(`服务器运行在端口 ${PORT}`)
       console.log(`健康检查: http://localhost:${PORT}/health`)
       console.log(`认证路由: http://localhost:${PORT}/api/auth`)

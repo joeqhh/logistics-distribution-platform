@@ -246,10 +246,7 @@ export default function Logistics() {
     if (!order || ['WAITRECEIVE', 'RECEIVED'].includes(order.status)) return
 
     // 创建WebSocket连接
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001'
-
-    socketRef.current = io(socketUrl, {
-      path: '/socket.io',
+    socketRef.current = io('/', {
       transports: ['websocket'],
       query: {
         orderId: orderId
