@@ -91,7 +91,7 @@ export default function LoginForm() {
         >
           <Input
             prefix={<IconUser />}
-            placeholder="账号"
+            placeholder="账号：merchant"
             onPressEnter={onSubmitClick}
           />
         </Form.Item>
@@ -101,7 +101,7 @@ export default function LoginForm() {
         >
           <Input.Password
             prefix={<IconLock />}
-            placeholder="密码"
+            placeholder="密码：abc123"
             onPressEnter={onSubmitClick}
           />
         </Form.Item>
